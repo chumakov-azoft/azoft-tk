@@ -1,0 +1,73 @@
+      <g>
+        <g v-for="(item, i) in itemArray" :key="i">
+
+          <text :x="calculateXPos(i)" :y="bottomHeight+45">
+            <!-- {{ item }}  -->
+            x={{calculateXPos(i)}}
+          </text>
+
+          <path class="path" :d="'M' + halfSize + ','         + (topHeight+radius) +' '+
+                'C' + halfSize + ','         + halfSize +' '+
+                      calculateXPos(i) + ',' + halfSize +' '+
+                      calculateXPos(i) + ',' + bottomHeight"
+          />
+
+          <circle fill="#AE8EE9"
+                  r="10"
+                  :cx="calculateXPos(i)"
+                  :cy="bottomHeight+15">
+          </circle>
+        </g>
+      </g>
+
+      <!-- Clipping Code Starts -->
+      <defs>--port
+        <filter id="dropshadow" height="130%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3"/> <!-- stdDeviation is how much to blur -->
+          <feOffset dx="2" dy="2" result="offsetblur"/> <!-- how much to offset -->
+          <feComponentTransfer>
+            <feFuncA type="linear" slope="0.5"/> <!-- slope is the opacity of the shadow -->
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode/> <!-- this contains the offset blurred image -->
+            <feMergeNode in="SourceGraphic"/> <!-- this contains the element that the filter is applied to -->
+          </feMerge>
+        </filter>
+        <mask id="match-mask">
+          <circle :r="radius"
+                  :cx="halfSize"
+                  :cy="topHeight"
+                  fill="white"/>
+        </mask>
+        <mask id="svg-mask">
+          <circle :r="radius"
+                  :cx="halfSize"
+                  :cy="topHeight"
+                  fill="white"/>
+        </mask>
+        <mask id="match-mask">
+          <rect width="200" height="40" rx="3" ry="3" stroke="null"/>
+        </mask>
+      </defs>
+
+      <image mask="url(#svg-mask)"
+             :x="(halfSize-radius)"
+             :y="(topHeight-radius)"
+             :height="topHeight"
+             :width="topHeight"
+             xlink:href="https://s3-ap-southeast-2.amazonaws.com/kruties-diagrams/misc/guardians-of-the-galaxy.jpg">
+
+      </image>
+      <!-- Clipping Code Ends -->
+
+      <circle class="circle"
+              :r="radius"
+              :cx="halfSize"
+              :cy="topHeight">
+      </circle>
+
+      <text class="title"
+            :x="halfSize"
+            :y="topHeight/4">
+        {{ title }}
+      </text>
