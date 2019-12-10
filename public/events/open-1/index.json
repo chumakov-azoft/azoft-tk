@@ -1,7 +1,0 @@
-{
-  "name": "Azoft Open 1.0",
-  "mesh": "mesh.json",
-  "players": "players.json",
-  "orders": "orders.json",
-  "scores": "scores.json"
-}

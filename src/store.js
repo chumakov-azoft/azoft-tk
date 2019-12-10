@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
-import router from './router'
 import git from './plugins/git'
 
 Vue.use(Vuex)
@@ -9,6 +8,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     zoom: null,
+    zoomer: null,
     settings: {
       base: '',
       role: localStorage['role'] || '',
@@ -19,10 +19,25 @@ export default new Vuex.Store({
       matchHeight: 60,
       maxScore: 3
     },
+    video: {
+      audioTime: [],
+      audio: [],
+      chevrons: [],
+      ratings: [],
+      logos: [],
+      names: [],
+      scores: [],
+      subtitle: '',
+      scoreTime: [0],
+      score: ['0 0 0 0 0']
+    },
     edit: {
       itemToSwitch: null,
       itemsToMove: [],
-      current: { index: 0, count: 0, p: 0, name: '' }
+      current: { index: 0, count: 0, p: 0, name: '' },
+      next: false,
+      centeredMatch: 0,
+      readyMatches: []
     },
     colors: ['#ff0500', '#0074d9', '#01ff70', '#fff100', '#c200ff', '#00f9ff', '#ff8c00', '#ff00bc', '#003f83', '#B50002', '#019e47', '#a7a400', '#7b009d', '#00969b', '#773b00', '#990063', '#0074d9', '#01ff70', '#001f3f', '#39cccc', '#3d9970', '#2ecc40', '#ff4136', '#85144b', '#ff851b', '#b10dc9', '#ffdc00', '#f012be', '#aaaaaa', '#dddddd', '#7fdbff', '#0074d9', '#01ff70', '#001f3f', '#39cccc', '#3d9970', '#2ecc40', '#ff4136', '#85144b', '#ff851b', '#b10dc9', '#ffdc00', '#f012be', '#aaaaaa', '#dddddd', '#7fdbff', '#0074d9', '#01ff70', '#001f3f', '#39cccc', '#3d9970', '#2ecc40', '#ff4136', '#85144b', '#ff851b', '#b10dc9', '#ffdc00', '#f012be', '#aaaaaa', '#dddddd'],
     // players: JSON.parse('[{"name":"Казачев Станислав Александрович","location":"Самарская обл., Чапаевск","rating":"638.73"},{"name":"Токарев Александр Алексеевич","location":"Самарская обл., Самара","rating":"667.28"},{"name":"Божко Данила Николаевич","location":"Самара","rating":"572.14"},{"name":"Стешин Михаил Алексеевич","location":"Самарская обл., Самара","rating":"687.74"},{"name":"Бахметьев Валерий Николаевич","location":"Самарская обл., Самара","rating":"655.51"},{"name":"Бурачек Владимир Николаевич","location":"Самарская обл., Кинель","rating":"615.49"},{"name":"Прохоров Александр Николаевич","location":"Самарская обл., Самара","rating":"631.18"},{"name":"Усманов Александр Владимирович","location":"Самарская обл., Самара","rating":"616.32"},{"name":"Ельшов Максим Викторович","location":"Самарская обл., Самара","rating":"629.55"},{"name":"Клушин Анатолий Федорович","location":"Самарская обл., Самара","rating":"560.99"},{"name":"Хуснутдинов Ерлан Георгиевич","location":"Самарская обл., Самара","rating":"627.76"},{"name":"Петров Антон Владимирович","location":"Самарская обл., Самара","rating":"639.99"},{"name":"Коба Александр Владимирович","location":"Самарская обл., Самара","rating":"633.81"},{"name":"Емельянов Андрей Николаевич","location":"Самарская обл., Самара","rating":"599.38"},{"name":"Гурков Дмитрий Анатольевич","location":"Самарская обл., Самара","rating":"585.37"},{"name":"Арапов Александр Алексеевич","location":"Самарская обл., Самара","rating":"584.96"},{"name":"Гусев Андрей Николаевич","location":"Самарская обл., Самара","rating":"543.26"},{"name":"Кузнецов Кирилл Дмитриевич","location":"Самарская обл., Самара","rating":"429.03"},{"name":"Засорёнков Сергей Владимирович","location":"Самарская обл., Самара","rating":"594.59"},{"name":"Леонтьев Алексей Александрович","location":"Самарская обл., Самара","rating":"563.92"},{"name":"Вирюжский Николай Викторович","location":"Самарская обл., Самара","rating":"492.80"},{"name":"Борщевский Юрий Давидович","location":"Самарская обл., Самара","rating":"589.45"},{"name":"Федяев Антон Вадимович","location":"Самарская обл., Самара","rating":"446.67"},{"name":"Ширяев Михаил Викторович","location":"Самарская обл., Самара","rating":"508.35"},{"name":"Гафиатулин Чингиз Тагирович","location":"Самарская обл., Самара","rating":"607.46"},{"name":"Солдаткин Дмитрий Викторович","location":"Самарская обл., Самара","rating":"591.42"},{"name":"Федин Дмитрий Игоревич","location":"Самарская обл., Самара","rating":"437.04"},{"name":"Кравченко Денис Константинов","location":"Самарская обл., Самара","rating":"353.33"},{"name":"Кукорин Марат Алексеевич","location":"Самарская обл., Самара","rating":"515.36"},{"name":"Король Михаил Анатольевич","location":"Самарская обл., Самара","rating":"548.40"},{"name":"Гуленков Олег Витальевич","location":"Самарская обл., Самара","rating":"446.42"},{"name":"Лучкин Вадим Игоревич","location":"Самарская обл., Самара","rating":"558.64"}]'),
@@ -30,31 +45,36 @@ export default new Vuex.Store({
     // JSON.parse('[{"name":"Юдин Валерий Витальевич","location":"Новосибирская обл., Новосибирск","rating":"511.41"},{"name":"Солдатов Евгений Анатольевич","location":"Новосибирская обл., Новосибирск","rating":"457.05"},{"name":"Ефременко Всеволод Даниилович","location":"Новосибирская обл., Новосибирск","rating":"490.23"},{"name":"Насыбуллов Тимур Ринатович","location":"Новосибирская обл., Новосибирск","rating":"384.38"},{"name":"Колодный Денис Владимирович","location":"Новосибирская обл., Новосибирск","rating":"461.80"},{"name":"Жаринов Алексей Сергеевич","location":"Новосибирская обл., Новосибирск","rating":"329.63"},{"name":"Шинкевич Сергей Анатольевич","location":"Новосибирская обл., Бердск","rating":"416.29"},{"name":"Паньшин Виктор Владимирович","location":"Новосибирская обл, Новосибирск","rating":"399.07"},{"name":"Лущинский Александр Владимирович","location":"Новосибирская обл., Бердск","rating":"290.69"},{"name":"Васильев Алексей Сергеевич","location":"Новосибирская обл., Новосибирск","rating":"302.01"},{"name":"Наумов Дмитрий Николаевич","location":"Новосибирская обл., Новосибирск","rating":"204.96"},{"name":"Свиридов Евгений Юрьевич","location":"Новосибирская обл., Новосибирск","rating":"208.49"},{"name":"Ковалева Екатерина Александровна","location":"Новосибирская обл., Новосибирск","rating":"150.51"},{"name":"Рудых Ярослав Игоревич","location":"Новосибирская обл., Новосибирск","rating":"131.57"},{"name":"Михеев Юрий Викторович","location":"Новосибирская обл., Новосибирск","rating":"126.50"}]'),
     players: [],
     matches: null,
+    places: null,
     positions: [],
     curves: [],
     orders: [],
+    medias: [],
     mesh: []
   },
   mutations: {
     initialize (state, section) {
       if (section) {
-        const host = window.location.hostname.indexOf('localhost') !== -1 ? 'https://azoft.tk/' : ''
+        const host = window.location.hostname.indexOf('localhost') === -1 ? 'https://azoft.tk/' : ''
         // const host = window.location.hostname.indexOf('localhost') === -1 ? 'https://raw.githubusercontent.com/chumakov-azoft/azoft-tk/master/' : ''
         state.settings.base = 'events/' + section + '/'
         const rand = Math.random()
         Promise.all([
-          axios.get(host + state.settings.base + 'index.json?v=' + rand),
+          // axios.get(host + state.settings.base + 'index.json?v=' + rand),
+          axios.get(host + state.settings.base + 'info.json?v=' + rand),
           axios.get(host + state.settings.base + 'players.json?v=' + rand),
           axios.get(host + state.settings.base + 'mesh.json?v=' + rand),
           axios.get(host + state.settings.base + 'orders.json?v=' + rand),
-          axios.get(host + state.settings.base + 'scores.json?v=' + rand)
+          axios.get(host + state.settings.base + 'scores.json?v=' + rand),
+          axios.get(host + state.settings.base + 'medias.json?v=' + rand)
         ]).then((values) => {
-          console.log(values, values[0].data.name)
+          // console.log(values, values[0].data.name)
           document.title = values[0].data.name
           state.players = values[1].data.players
           state.mesh = values[2].data.mesh
           state.orders = values[3].data.orders
           state.scores = values[4].data.scores
+          state.medias = values[5].data.medias
           try {
             preparePlayers(state)
             createMatches(state)
@@ -63,7 +83,9 @@ export default new Vuex.Store({
           }
         }).catch(e => {
           console.error(e)
-          router.replace('/')
+          setTimeout(() => {
+            window.location.reload(true)
+          }, 1000)
         })
       }
       // preparePlayers(state, [0, 2, 1, 4, 7, 6, 5, 3, 10, 11, 9, 8, -1, 14, 13, 12])
@@ -76,10 +98,12 @@ export default new Vuex.Store({
       outHalf(state, { order, $event })
     },
     click (state, { order, $event }) {
-      console.log(order)
+      const i = order[0]
+      const j = order[1]
+      const p = order[2]
       if ($event.ctrlKey || $event.altKey) {
         if (!state.edit.itemToSwitch) {
-          state.edit.itemToSwitch = { ...order }
+          state.edit.itemToSwitch = [ ...order ]
         } else {
           outHalf(state, {})
           switchOrder(state, state.edit.itemToSwitch, order, !$event.altKey)
@@ -87,13 +111,13 @@ export default new Vuex.Store({
           overHalf(state, { order })
         }
       } else if ($event.shiftKey) {
-        state.edit.itemsToMove.push(state.matches[order.index][order.count])
+        state.edit.itemsToMove.push(state.matches[i][j])
       } else {
-        // console.log(state.matches[order.index][order.count].names[order.p])
-        if (order.index === 0 && state.matches[order.index][order.count].names[order.p].indexOf('Запgiисывайтесь') !== -1) {
+        // console.log(state.matches[i][j].names[p])
+        if (i === 0 && state.matches[i][j].names[p].indexOf('Записывайтесь') !== -1) {
           document.location.href = 'tg://t.me/joinchat/FMaTykiB1RIoc7PMD5RTkQ'
         }
-        state.edit.itemsToMove = [state.matches[order.index][order.count]]
+        state.edit.itemsToMove = [state.matches[i][j]]
       }
     },
     setMatchScore (state, { index: i, count: j, p, score }) {
@@ -101,8 +125,8 @@ export default new Vuex.Store({
       Vue.set(state.matches[i][j].scores, p, score)
       localStorage['scores'] = JSON.stringify(state.scores)
       localStorage['orders'] = JSON.stringify(state.orders)
-      console.log(JSON.stringify(state.scores).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
-      console.log(JSON.stringify(state.orders).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
+      // console.log(JSON.stringify(state.scores).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
+      // console.log(JSON.stringify(state.orders).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
     },
     setMatchWinner (state, { index: i, count: j, p }) {
       const match = state.matches[i][j]
@@ -123,17 +147,68 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    addVideoPoint ({ state, commit }, { k, position }) {
+      console.log('add point', k, position)
+      const current = state.video.score[state.video.score.length - 1].split(' ')
+      const lastPosition = state.video.scoreTime[state.video.scoreTime.length - 1]
+      current[k]++
+      if (k < 2) {
+        current[2] = 0
+        current[3] = 0
+      }
+      position = Math.floor(position * 10) / 10
+      if (lastPosition >= position) {
+        state.video.score[state.video.score.length - 1] = current.join(' ')
+        state.video.scoreTime[state.video.scoreTime.length - 1] = position
+      } else {
+        state.video.score[state.video.score.length] = current.join(' ')
+        state.video.scoreTime[state.video.scoreTime.length] = position
+      }
+      console.log('  "scoreTime": [' + state.video.scoreTime.join(',') + '],\n  "score": ["' + state.video.score.join('","') + '"]\n')
+    },
+    shrinkVideoPoint ({ state, commit }, { position }) {
+      console.log('shrink to', position)
+      let lastPosition = state.video.scoreTime[state.video.scoreTime.length - 1]
+      while (lastPosition >= position && state.video.scoreTime.length > 1) {
+        state.video.scoreTime.pop()
+        state.video.score.pop()
+        lastPosition = state.video.scoreTime[state.video.scoreTime.length - 1]
+        console.log(state.video.scoreTime.length, lastPosition, position)
+      }
+      console.log('  "scoreTime": [' + state.video.scoreTime.join(',') + '],\n  "score": ["' + state.video.score.join('","') + '"]\n')
+    },
+    showVideoPoint ({ state, commit }, { position }) {
+      console.log('scoreTime: ', state.video.scoreTime)
+      console.log('score: ', state.video.score)
+    },
+    loadVideoBoard ({ state, commit }, id) {
+      const host = window.location.hostname.indexOf('localhost') === -1 ? 'https://azoft.tk/' : ''
+      return axios.get(host + state.settings.base + '/board/' + id + '.json').then(({ data }) => {
+        state.video.audioTime = data.audioTime || []
+        state.video.audio = Array.isArray(data.audio) ? data.audio : [data.audio]
+        state.video.chevrons = [data.chevron1, data.chevron2]
+        state.video.ratings = [data.rating1, data.rating2]
+        state.video.logos = [state.settings.base + data.logo1, state.settings.base + data.logo2]
+        state.video.names = [data.name1, data.name2]
+        state.video.subtitle = data.subtitle
+        state.video.scoreTime = data.scoreTime
+        state.video.score = data.score
+        console.log('set store audio', data.audio)
+        Vue.set(state.video, 'audio', data.audio)
+      })
+    },
     setMatchResult ({ state, commit }, key) {
-      const index = state.edit.current.index
-      const count = state.edit.current.count
-      const p = state.edit.current.p
-      if (state.matches[index][count].status === 'single' || state.matches[index][count].status === 'ready1' || state.matches[index][count].status === 'ready2') {
+      const index = state.edit.current[0]
+      const count = state.edit.current[1]
+      const p = state.edit.current[2]
+      const match = state.matches[index][count]
+      if (match.status === 'single' || match.status === 'ready1' || match.status === 'ready2') {
         return
       }
       outHalf(state, {})
-      if (!state.edit.current.next) {
+      if (!state.edit.next) {
         commit('setMatchScore', { index, count, p, score: key })
-        state.edit.current.next = true
+        state.edit.next = true
         if (key >= state.settings.maxScore || key === 'Tex') {
           commit('setMatchWinner', { index, count, p })
           commit('setMatchScore', { index, count, p: 1 - p, score: 0 })
@@ -143,27 +218,34 @@ export default new Vuex.Store({
         }
       } else {
         commit('setMatchScore', { index, count, p: 1 - p, score: key })
-        state.edit.current.next = null
+        state.edit.next = false
         if (key >= state.settings.maxScore && ['win1', 'win2'].indexOf(state.matches[index][count].status) === -1) {
           commit('setMatchWinner', { index, count, p })
         }
       }
-      setTimeout(() => overHalf(state, { order: { index, count, p } }))
+      setTimeout(() => overHalf(state, { order: [ index, count, p ] }))
     },
-    moveMatches ({ state, commit }, { dx, dy }) {
+    moveObjects ({ state, commit }, { dx, dy }) {
       state.edit.itemsToMove.forEach((match) => {
-        const [i, j] = match.order
-        const [p1, p2] = match.seeds
-        match.position = [state.mesh[i][j * 2] = match.position[0] + dx, state.mesh[i][j * 2 + 1] = match.position[1] + dy]
-        let isFinished = match.status === 'win1' || match.status === 'win2'
-        let isReady = match.status === 'win1' || match.status === 'win2' || match.status === 'ready'
-        if (match.curves) {
-          updateCurve(match.curves[0], state, p1, match.order[0], match.order[1], 0,
-            { color: isReady || match.status === 'ready1' ? state.colors[p1] : null, shiftX: match.curvesShiftX[0] })
-          updateCurve(match.curves[1], state, p2, match.order[0], match.order[1], 1,
-            { color: isReady || match.status === 'ready2' ? state.colors[p2] : null, shiftX: match.curvesShiftX[1] })
+        if (match.seeds) {
+          const [i, j] = match.order
+          const [p1, p2] = match.seeds
+          match.position = [state.mesh[i][j * 2] = match.position[0] + dx, state.mesh[i][j * 2 + 1] = match.position[1] + dy]
+          let isFinished = match.status === 'win1' || match.status === 'win2'
+          let isReady = match.status === 'win1' || match.status === 'win2' || match.status === 'ready'
+          if (match.curves) {
+            updateCurve(match.curves[0], state, p1, match.order[0], match.order[1], 0,
+              { color: isReady || match.status === 'ready1' ? state.colors[p1] : null, shiftX: match.curvesShiftX[0] })
+            updateCurve(match.curves[1], state, p2, match.order[0], match.order[1], 1,
+              { color: isReady || match.status === 'ready2' ? state.colors[p2] : null, shiftX: match.curvesShiftX[1] })
+          }
+          updateNextCurves(state, i, j, p1, p2, isFinished)
+        } else { // media
+          match[1] += dx
+          match[2] += dy
+          console.log(match.join(', '))
+          Vue.set(state.medias, 0, state.medias[0])
         }
-        updateNextCurves(state, i, j, p1, p2, isFinished)
       })
       console.log('------')
       let meshOut = ''
@@ -175,7 +257,7 @@ export default new Vuex.Store({
     saveResults ({ state, commit }) {
       git.saveState(state.settings.base, ['orders.json', 'scores.json'], [
         JSON.stringify({ orders: state.orders }).replace('[[', '[\n[').replace(/\],\[/gm, '],\n['),
-        JSON.stringify({ scores: state.scores }).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n[') + '}'
+        JSON.stringify({ scores: state.scores }).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n[')
       ])
     },
     saveFiles ({ state, commit }) {
@@ -189,6 +271,26 @@ export default new Vuex.Store({
     },
     savePlayers ({ state, commit }) {
       // git.saveState(state.settings.base, ['players.json'], { players: state.players })
+    },
+    centerMatch ({ state, commit }) {
+      if (state.edit.readyMatches.length) {
+        const zoomer = state.zoomer
+        state.edit.centeredMatch = (state.edit.centeredMatch + 1) % state.edit.readyMatches.length
+        const match = state.edit.readyMatches[state.edit.centeredMatch]
+        var initialSizes = zoomer.getSizes()
+        var initialLoc = zoomer.getPan()
+        var initialBounds = document.querySelector('#match-' + match.order[0] + '-' + match.order[1]).getBoundingClientRect()
+        console.log(initialBounds)
+        var initialZoom = zoomer.getZoom()
+        var initialCX = initialBounds.x + (initialBounds.width / 2)
+        var initialCY = initialBounds.y + (initialBounds.height / 2)
+
+        var dX = (initialSizes.width / 2) - initialCX
+        var dY = (initialSizes.height / 2) - initialCY
+
+        // zoomer.panBy({ x: -1000, y: -500 })
+        // customPanByZoomAtEnd({ x: dX, y: dY }, 2, 700)
+      }
     }
   }
 })
@@ -240,6 +342,7 @@ function preparePlayers (state, seedArr) {
 function createMatches (state) {
   state.curves = []
   state.matches = []
+  state.readyMatches = []
   state.positions = []// localStorage['positions'] ? JSON.parse(localStorage['positions']) : []
   for (let i = 0; i < state.orders.length; i++) {
     let round = []
@@ -286,6 +389,13 @@ function createMatches (state) {
         state.scores[i][j] = [0, 0, status]
       } else {
         status = state.scores[i][j][2]
+        /* if (i === 7 && j === 0) {
+          status = 'win1'
+        } */
+        /* if (i === 7 && j === 1) {
+          state.scores[i][j][0] = 3
+          status = 'win1'
+        } */
         // state.scores[i][j] = status === 'win1' ? [3, 0, status] : [0, 3, status]
       }
       let isReady = status === 'win1' || status === 'win2' || status === 'ready'
@@ -319,7 +429,7 @@ function createMatches (state) {
         removeSeed(state, p2)
         continue
       }
-      round.push({
+      const match = {
         order: [i, j],
         seeds: [p1, p2],
         curves: curves,
@@ -330,34 +440,60 @@ function createMatches (state) {
         ratings: [Math.round(state.players[p1].currentRating), Math.round(state.players[p2].currentRating)],
         scores: state.scores[i][j],
         status: status
-      })
+      }
+      round.push(match)
       if (status === 'win1' || status === 'win2') {
         const delta = getRatingDelta(+state.players[p1].rating, +state.players[p2].rating, state.scores[i][j])
         state.players[p1].currentRating += status === 'win1' ? delta[0] : delta[1]
         state.players[p2].currentRating += status === 'win1' ? delta[1] : delta[0]
-        if (i === 0) {
-          console.log(j, +state.players[p1].currentRating, +state.players[p2].currentRating, state.scores[i][j], delta)
-        }
+      } else if (status === 'ready') {
+        state.edit.readyMatches.push(match)
       }
     }
     state.matches.push(round)
   }
-  // console.log(matches)
+  state.places = Array(state.orders[0].length)
+  for (let j = 0; j < state.orders[0].length; j++) {
+    let i = state.orders.length - 1
+    while (state.orders[i][j] < 0) {
+      i--
+    }
+    const p = state.orders[i][j]
+    const match = state.matches[i][Math.floor(j / 2)]
+    if (match.status === 'win1' || match.status === 'win2') {
+      state.places[j] = {
+        seed: p,
+        order: [i, Math.floor(j / 2), j % 2 ? 1 : 0],
+        position: [match.position[0] + state.settings.matchWidth + 10, match.position[1] + (j % 2 ? 30 : 0)],
+        rating: Math.round(state.players[p].currentRating),
+        delta: Math.round(state.players[p].currentRating) - Math.round(state.players[p].rating),
+        place: (match.status === 'win1' ? j + 1 : (j % 2 ? j : j + 2))
+      }
+      if (j < 3) {
+        setTimeout(() => document.querySelectorAll('#player' + p + ':not(.empty)').forEach((element) => element.classList.add('place--' + (j + 1))))
+      }
+    }
+  }
+  // console.log(state.matches)
+  // console.log(state.places)
 }
 
 function overHalf (state, { order, $event }) {
-  console.log('i=' + order.index, 'j=' + order.count, 'seeds:', state.matches[order.index][order.count].seeds.join(','), 'status:', state.matches[order.index][order.count].status, 'position:', state.matches[order.index][order.count].position.join(','), state.scores[order.index][order.count].join(','))
-  if ($event && (order.index !== state.edit.current.index || order.count !== state.edit.current.count || order.p !== state.edit.current.p)) {
+  const i = order[0]
+  const j = order[1]
+  const p = order[2]
+  console.log('i=' + i, 'j=' + j, 'seeds:', state.matches[i][j].seeds.join(','), 'status:', state.matches[i][j].status, 'position:', state.matches[i][j].position.join(','), 'colors:', state.colors[state.matches[i][j].seeds[0]], state.colors[state.matches[i][j].seeds[1]])
+  if ($event && (i !== state.edit.current[0] || j !== state.edit.current[1] || p !== state.edit.current[2])) {
     state.edit.current = order
   }
-  document.querySelectorAll('#player' + state.matches[order.index][order.count].seeds[order.p] + ':not(.empty)').forEach((element) => element.classList.add('over'))
+  document.querySelectorAll('#player' + state.matches[i][j].seeds[p] + ':not(.empty)').forEach((element) => element.classList.add('over'))
 }
 
 function outHalf (state, { order, $event }) {
   if ($event && state.edit.current) {
-    state.edit.current.next = null
+    state.edit.next = false
   }
-  document.querySelectorAll('#player' + state.matches[state.edit.current.index][state.edit.current.count].seeds[state.edit.current.p]).forEach((element) => element.classList.remove('over'))
+  document.querySelectorAll('#player' + state.matches[state.edit.current[0]][state.edit.current[1]].seeds[state.edit.current[2]]).forEach((element) => element.classList.remove('over'))
 }
 
 function switchSeeds (state, i, index1, index2, p1, p2) {
@@ -432,11 +568,11 @@ function removeSeed (state, p) {
 
 const globalOrdering = false
 function switchOrder (state, order1, order2, all = true) {
-  let p1 = state.matches[order1.index][order1.count].seeds[order1.p]
-  let p2 = state.matches[order2.index][order2.count].seeds[order2.p]
+  let p1 = state.matches[order1[0]][order1[1]].seeds[order1[2]]
+  let p2 = state.matches[order2[0]][order2[1]].seeds[order2[2]]
   // const arr = idealDE16
   if (globalOrdering) {
-    for (let i = order1.index; i < idealDE16.length; i++) {
+    for (let i = order1[0]; i < idealDE16.length; i++) {
       let index1 = idealDE16[i].indexOf(p1)
       let index2 = idealDE16[i].indexOf(p2)
       if (index1 !== -1 && index2 !== -1) {
@@ -477,8 +613,6 @@ function updateNextMatches (state, i, j, p1, p2) {
     let { i0, j0 } = getNextSeed(state, p1, i)
     if (p1 !== -1 && j0 !== -1) {
       const match0 = state.matches[i0][Math.floor(j0 / 2)]
-
-      console.log(1111, i0, j0, p1, p2)
       if (j0 % 2) {
         if (match0.status === 'ready1') {
           match0.status = 'ready'
@@ -500,7 +634,6 @@ function updateNextMatches (state, i, j, p1, p2) {
     ({ i0, j0 } = getNextSeed(state, p2, i))
     if (p2 !== -1 && j0 !== -1) {
       const match1 = state.matches[i0][Math.floor(j0 / 2)]
-      console.log(22222, i0, j0, p1, p2)
       if (j0 % 2) {
         if (match1.status === 'ready1') {
           match1.status = 'ready'
@@ -549,7 +682,6 @@ function updateNextCurves (state, i, j, p1, p2, isFinished) {
 }
 
 function updateCurve (curv, state, p1, i, j, pos1, { color, shiftX }) {
-  console.log(p1, i, j, pos1, color, shiftX)
   let { i0, j0 } = getPrevSeed(state, p1, i)
   const pos0 = (i0 === 0 && state.matches[i0][Math.floor(j0 / 2)].status === 'single') ? 0.5 : j0 % 2
   j0 = j0 % 2 ? j0 - 1 : j0

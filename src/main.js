@@ -4,7 +4,9 @@ import router from './router'
 import store from './store'
 import './registerServiceWorker'
 import vuetify from './plugins/vuetify'
+import VueSilentbox from './components/vue-silentbox'
 
+Vue.use(VueSilentbox)
 Vue.config.productionTip = false
 
 new Vue({

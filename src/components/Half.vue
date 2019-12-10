@@ -19,8 +19,8 @@ export default {
   components: { },
   props: {
     order: {
-      type: Object,
-      default: () => {}
+      type: Array,
+      default: () => []
     },
     seed: {
       type: Number,
@@ -63,8 +63,14 @@ export default {
 </script>
 
 <style lang="scss">
-.championHighlight .champion .player {
+.championsHighlight .place--1 .player {
   fill: #fff663;
+}
+.championsHighlight .place--2 .player {
+  fill: #e8e8e8;
+}
+.championsHighlight .place--3 .player {
+  fill: #ffcd99;
 }
 .overHighlight .over .player {
   fill: #80ff55;

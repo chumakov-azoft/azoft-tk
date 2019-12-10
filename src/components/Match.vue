@@ -1,11 +1,11 @@
 <template>
-  <g style="filter:url(#dropshadow)" :status="status">
+  <g style="filter:url(#dropshadow)" :status="status" :id="'match-' + order[0] + '-' + order[1]">
     <g :transform="`translate(${position[0]} ${position[1] + (single ? 15 : 0)})`" :class="single ? 'clipHalf' : 'clipMatch'">
       <half
         :class="{winner: (finished && win1) || single}"
         :seed="seeds[0]"
         :id="'player' + seeds[0]"
-        :order="{...order, p: 0}"
+        :order="order.concat(0)"
         :logo="logos[0]"
         :name="names[0]"
         :score="scores[0]"
@@ -17,7 +17,7 @@
         :class="{winner: finished && win2}"
         :seed="seeds[1]"
         :id="'player' + seeds[1]"
-        :order="{...order, p: 1}"
+        :order="order.concat(1)"
         :logo="logos[1]"
         :name="names[1]"
         :score="scores[1]"
@@ -40,8 +40,8 @@ export default {
       default: () => []
     },
     order: {
-      type: Object,
-      default: () => {}
+      type: Array,
+      default: () => []
     },
     position: {
       type: Array,

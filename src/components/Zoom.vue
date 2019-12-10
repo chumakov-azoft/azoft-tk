@@ -1,9 +1,9 @@
 <template>
   <SvgPanZoom
-    class="championHighlight overHighlight"
+    :style="'opacity:' + visible ? 1 : 0"
+    class="championsHighlight overHighlight"
     style="width: 100%; height: 100%; user-select: none;"
     @svgpanzoom="registerSvgPanZoom"
-    @dblclick="onDoubleClick"
     :zoomEnabled="true"
     :dblClickZoomEnabled="false"
     :controlIconsEnabled="false"
@@ -34,10 +34,10 @@
         ></path>
       </g>
       <g>
-        <g v-for="(games, index) in matches" :key="index" :transform1="`translate(${index * 270} 0)`">
-          <match v-for="(game, count) in games" :key="index + '.' + count" :transform1="`translate(0 ${count * 80})`" v-if="game"
+        <g v-for="(games, index) in matches" :key="'game' + index">
+          <match v-for="(game, count) in (games || []).filter(Boolean)" :key="index + '.' + count" :transform1="`translate(0 ${count * 80})`"
                  :seeds="game.seeds"
-                 :order="{index, count}"
+                 :order="game.order"
                  :names="game.names"
                  :logos="game.logos"
                  :position="game.position"
@@ -46,6 +46,18 @@
                  :status="game.status"
           ></match>
         </g>
+        <g v-for="(place, count) in (places || []).filter(Boolean)" :key="'place' + count">
+          <place
+            :seed="place.seed"
+            :order="place.order"
+            :position="place.position"
+            :rating="place.rating"
+            :place="place.place"
+            :delta="place.delta"
+          ></place>
+        </g>
+
+        <medias></medias>
       </g>
     </svg>
   </SvgPanZoom>
@@ -57,8 +69,10 @@ import Hammer from 'hammerjs'
 import SvgPanZoom from 'vue-svg-pan-zoom'
 import draggable from 'vuedraggable'
 import Match from './Match.vue'
+import Place from './Place.vue'
+import Medias from './Medias.vue'
 export default {
-  components: { SvgPanZoom, Match },
+  components: { SvgPanZoom, Match, Place, Medias },
   data: () => ({
     visible: false,
     hammer: null,
@@ -68,13 +82,16 @@ export default {
 
       // Init custom events handler
       init: function (options) {
-        var instance = options.instance
-        var initialScale = 1
-        var pannedX = 0
-        var pannedY = 0
+        const zoomer = options.instance
+        let initialScale = 1
+        let pannedX = 0
+        let pannedY = 0
         // Init Hammer
-        this.hammer = Hammer(options.svgElement, {
-          inputClass: Hammer.SUPPORT_POINTER_EVENTS ? Hammer.PointerEventInput : Hammer.TouchInput
+        this.hammer = Hammer(options.svgElement)
+
+        this.hammer.on('panleft panright tap press', function (ev) {
+          // console.log(ev.type)
+          // window.zoom.$emit('clickMedia', 1)
         })
 
         // Enable pinch
@@ -82,10 +99,7 @@ export default {
 
         // Handle double tap
         this.hammer.on('doubletap', function (ev) {
-          instance.updateBBox()
-          instance.resize()
-          instance.fit()
-          instance.center()
+          zoomer.$store.dispatch('centerMatch')
         })
 
         // Handle pan
@@ -96,18 +110,25 @@ export default {
             pannedY = 0
           }
           // Pan only the difference
-          instance.panBy({ x: ev.deltaX - pannedX, y: ev.deltaY - pannedY })
+          zoomer.panBy({ x: ev.deltaX - pannedX, y: ev.deltaY - pannedY })
           pannedX = ev.deltaX
           pannedY = ev.deltaY
+          const pan = zoomer.getPan()
+          // console.log(pan.x, pan.y, zoomer.getZoom())
+          localStorage['zoom'] = JSON.stringify({ x: pan.x, y: pan.y, scale: zoomer.getZoom() })
         })
         // Handle pinch
         this.hammer.on('pinchstart pinchmove', function (ev) {
           // On pinch start remember initial zoom
           if (ev.type === 'pinchstart') {
-            initialScale = instance.getZoom()
-            instance.zoomAtPoint(initialScale * ev.scale, { x: ev.center.x, y: ev.center.y })
+            initialScale = zoomer.getZoom()
+            zoomer.zoomAtPoint(initialScale * ev.scale, { x: ev.center.x, y: ev.center.y })
           }
-          instance.zoomAtPoint(initialScale * ev.scale, { x: ev.center.x, y: ev.center.y })
+          if (ev.deltaX) {
+            const pan = zoomer.getPan()
+            localStorage['zoom'] = JSON.stringify({ x: pan.x, y: pan.y, scale: zoomer.getZoom() })
+          }
+          zoomer.zoomAtPoint(initialScale * ev.scale, { x: ev.center.x, y: ev.center.y })
         })
 
         // Prevent moving the page on some devices when panning over SVG
@@ -125,30 +146,48 @@ export default {
     matches () {
       return this.$store.state.matches
     },
+    places () {
+      return this.$store.state.places
+    },
     curves () {
       return this.$store.state.curves
     }
   },
   methods: {
-    registerSvgPanZoom (zoom) {
-      this.$store.zoom = zoom
-      if (localStorage['zoom'] && localStorage['zoom'].x) {
-        zoom.pan({ x: localStorage['zoom'].x, y: localStorage['zoom'].y })
+    registerSvgPanZoom (zoomer) {
+      this.$store.state.zoom = this
+      this.$store.state.zoomer = zoomer
+      zoomer.$store = this.$store
+      setTimeout(() => (this.visible = true))
+      if (localStorage['zoom']) {
+        const zoomStored = JSON.parse(localStorage['zoom'])
+        if (zoomStored.scale && zoomStored.scale > 0.1 && zoomStored.scale < 3) {
+          zoomer.zoom(zoomStored.scale)
+        }
+        if (zoomStored.x && zoomStored.y) {
+          zoomer.pan({ x: zoomStored.x, y: zoomStored.y })
+        }
       } else {
-        setTimeout(() => {
-          console.log(this.$store.zoom.getSizes().viewBox, this.$store.zoom.getSizes().realZoom)
-          this.$store.zoom.pan({ x: 20, y: 20 })
-          this.$store.zoom.zoomAtPoint(0.9, { x: 0, y: 0 })
-          this.visible = true
-        })
+        zoomer.pan({ x: 20, y: 20 })
+        zoomer.zoomAtPoint(0.9, { x: 0, y: 0 })
       }
-    },
-    onDoubleClick () {
-      console.log(123333)
+    }
+  },
+  mounted () {
+    if (navigator.standalone === true) {
+      // My app is installed and therefore fullscreen
+    } else {
+      setTimeout(() => window.scrollTo(0, 1))
     }
   },
   beforeDestroy () {
-    console.log(1111)
+    if (this.$store) {
+      if (this.$store.zoomer) {
+        this.$store.zoomer.$store = null
+        this.$store.zoomer = null
+      }
+      this.$store.zoom = null
+    }
   }
 }
 </script>

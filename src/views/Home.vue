@@ -45,7 +45,14 @@
       </v-btn>
     </v-speed-dial>
 
-    <Zoom/>
+    <silentbox-group>
+      <silentbox-item v-for="(media, index) in $store.state.medias" :key="'thumb' + index" :id="'thumb--' + media[6]" class="d-none"
+        :src="media[4][0] === '/' ? $store.state.settings.base + media[4] : media[4]"
+        :description="media.length ? media[5] : ''" :autoplay="true" :hide-controls="true">
+      </silentbox-item>
+    </silentbox-group>
+
+    <Zoom @clickMedia="onClick"/>
 
   </v-content>
 </template>
@@ -68,8 +75,11 @@ export default {
     fab: false
   }),
   methods: {
-    onClick () {
-      console.log(1111)
+    onClick (id) {
+      const thumb = document.querySelector('#thumb--' + id)
+      if (thumb) {
+        thumb.click()
+      }
     }
   },
   mounted () {
@@ -81,21 +91,23 @@ export default {
         this.$store.dispatch('setMatchResult', +e.key)
       } else if (e.key === 't' || e.key === 'е') {
         this.$store.dispatch('setMatchResult', 'Tex')
-      } else if (e.key === 'ArrowLeft') {
-        this.$store.dispatch('moveMatches', { dx: e.shiftKey ? -10 : -1, dy: 0 })
-      } else if (e.key === 'ArrowRight') {
-        this.$store.dispatch('moveMatches', { dx: e.shiftKey ? 10 : 1, dy: 0 })
-      } else if (e.key === 'ArrowUp') {
-        this.$store.dispatch('moveMatches', { dy: e.shiftKey ? -10 : -1, dx: 0 })
-      } else if (e.key === 'ArrowDown') {
-        this.$store.dispatch('moveMatches', { dy: e.shiftKey ? 10 : 1, dx: 0 })
+      } else if (e.code === 'ArrowLeft') {
+        this.$store.dispatch('moveObjects', { dx: e.shiftKey ? -10 : -1, dy: 0 })
+      } else if (e.code === 'ArrowRight') {
+        this.$store.dispatch('moveObjects', { dx: e.shiftKey ? 10 : 1, dy: 0 })
+      } else if (e.code === 'ArrowUp') {
+        this.$store.dispatch('moveObjects', { dy: e.shiftKey ? -10 : -1, dx: 0 })
+      } else if (e.code === 'ArrowDown') {
+        this.$store.dispatch('moveObjects', { dy: e.shiftKey ? 10 : 1, dx: 0 })
+      } else if (e.code === 'Escape') {
+        this.$store.state.edit.itemsToMove = []
       } else if (e.key === 'c' && e.altKey) {
         this.$store.dispatch('clearStorage')
       } else if (e.key === 'a' && e.altKey) {
         this.$store.dispatch('restoreFromStorage')
-      } else if (e.key === 's' && e.altKey && e.ctrlKey) {
+      } else if ((e.key === 's' || e.key === 'ы') && e.altKey && e.ctrlKey) {
         this.$store.dispatch('saveFiles')
-      } else if (e.key === 's' && e.altKey) {
+      } else if ((e.key === 's' || e.key === 'ы') && e.altKey) {
         this.$store.dispatch('saveResults')
       } else if (e.key === 'l' && e.altKey) {
         console.log(this.$route.name)
@@ -110,6 +122,7 @@ export default {
 </script>
 
 <style lang="scss">
+  html { overflow-y: auto !important }
   .menu {
     .v-btn:before {
       background-color: transparent;

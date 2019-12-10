@@ -21,7 +21,11 @@ const router = new Router({
       component: About
     },
     {
-      path: '/events/:section',
+      path: '/now',
+      redirect: '/events/open-1'
+    },
+    {
+      path: '/events/:section/:media?/:score?',
       name: 'home',
       component: Home,
       props: true,
@@ -66,7 +70,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.title) {
     document.title = to.meta.title
   }
-  console.log(to.path, to.matched)
+  // console.log(to.path, to.matched)
   if (to.path === '/admin') {
     localStorage['role'] = 'admin'
     next({ path: '/' })

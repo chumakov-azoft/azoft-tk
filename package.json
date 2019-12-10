@@ -1,6 +1,6 @@
 {
   "name": "tt3",
-  "version": "0.1.2",
+  "version": "0.1.7",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve --port 7001",
@@ -15,13 +15,18 @@
     "hammerjs": "^2.0.8",
     "js-git": "git+https://github.com/creationix/js-git.git",
     "js-github": "git+https://github.com/creationix/js-github.git",
+    "md5": "^2.2.1",
     "register-service-worker": "^1.6.2",
     "svg-pan-zoom": "^3.6.1",
     "vue": "^2.6.10",
+    "vue-image-lightbox": "^6.4.0",
+    "vue-lazyload": "^1.3.3",
     "vue-router": "^3.0.3",
     "vue-svg-pan-zoom": "^1.1.0",
+    "vue-youtube": "^1.4.0",
     "vuedraggable": "^2.23.2",
     "vuetify": "^2.0.0",
+    "vuetify-audio": "0.0.8",
     "vuex": "^3.0.1"
   },
   "devDependencies": {
