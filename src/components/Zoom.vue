@@ -1,8 +1,8 @@
 <template>
   <SvgPanZoom
     :style="'opacity:' + visible ? 1 : 0"
-    class="championsHighlight overHighlight"
-    style="width: 100%; height: 100%; user-select: none;"
+    class="championsHighlight overHighlight zoom-fixed"
+    style="user-select: none;"
     @svgpanzoom="registerSvgPanZoom"
     :zoomEnabled="true"
     :dblClickZoomEnabled="false"
@@ -14,7 +14,7 @@
       <defs>
         <clipPath id="match"><rect x="0" y="0" :width="matchWidth" height="60" rx="5" ry="5"></rect></clipPath>
         <clipPath id="half"><rect x="0" y="0" :width="matchWidth" height="30" rx="5" ry="5"></rect></clipPath>
-        <filter id="dropshadow" height="130%">
+        <filter id="dropshadow" width="135%" height="140%">
           <feGaussianBlur in="SourceAlpha" stdDeviation="3"/> <!-- stdDeviation is how much to blur -->
           <feOffset dx="2" dy="2" result="offsetblur"/> <!-- how much to offset -->
           <feComponentTransfer>
@@ -26,38 +26,51 @@
           </feMerge>
         </filter>
       </defs>
-      <g style="fill:none;stroke-width:4;stroke-linecap:butt;">
-        <path v-for="(curv, index) in curves" :key="'curv' + index"
-              :stroke="curv.color"
-              :stroke-dasharray="curv.dash"
-              :d="curv.d"
-        ></path>
-      </g>
+
       <g>
-        <g v-for="(games, index) in matches" :key="'game' + index">
-          <match v-for="(game, count) in (games || []).filter(Boolean)" :key="index + '.' + count" :transform1="`translate(0 ${count * 80})`"
-                 :seeds="game.seeds"
-                 :order="game.order"
-                 :names="game.names"
-                 :logos="game.logos"
-                 :position="game.position"
-                 :ratings="game.ratings"
-                 :scores="game.scores"
-                 :status="game.status"
-          ></match>
+
+        <g style="fill:none;stroke-width:4;stroke-linecap:butt;">
+          <path v-for="(curv, index) in curves" :key="'curv' + index"
+                :stroke="curv.color"
+                :stroke-dasharray="curv.dash"
+                :d="curv.d"
+          ></path>
         </g>
-        <g v-for="(place, count) in (places || []).filter(Boolean)" :key="'place' + count">
-          <place
-            :seed="place.seed"
-            :order="place.order"
-            :position="place.position"
-            :rating="place.rating"
-            :place="place.place"
-            :delta="place.delta"
-          ></place>
+
+        <g v-for="(stage, s) in stages" :key="'stage' + '-' + s" :id="'stage' + s">
+          <g v-for="(games, index) in matches[s]" :key="'game' + index">
+            <match v-for="(game, count) in (games || []).filter(Boolean)" :key="'match' + stage + '.' + index + '.' + count"
+                   :transform1="`translate(0 ${count * 80})`"
+                   :seeds="game.seeds"
+                   :order="game.order"
+                   :names="game.names"
+                   :logos="game.logos"
+                   :position="game.position"
+                   :ratings="game.ratings"
+                   :scores="game.scores"
+                   :status="game.status"
+            ></match>
+          </g>
+          <g v-for="(place, count) in (places[s] || []).filter(Boolean)" :key="'place' + stage + '.' + count">
+            <place v-if="place.seed"
+              :seed="place.seed"
+              :order="place.order"
+              :position="place.position"
+              :rating="place.rating"
+              :place="place.place"
+              :delta="place.delta"
+            ></place>
+          </g>
+          <group v-for="(group, count) in (groups[s] || [])" :key="'group' + stage + '.' + count"
+                 :index="group.index"
+                 :order="group.order"
+                 :seeds="group.seeds"
+                 :position="group.position"
+          ></group>
         </g>
 
         <medias></medias>
+
       </g>
     </svg>
   </SvgPanZoom>
@@ -71,8 +84,9 @@ import draggable from 'vuedraggable'
 import Match from './Match.vue'
 import Place from './Place.vue'
 import Medias from './Medias.vue'
+import Group from './Group'
 export default {
-  components: { SvgPanZoom, Match, Place, Medias },
+  components: { SvgPanZoom, Group, Match, Place, Medias },
   data: () => ({
     visible: false,
     hammer: null,
@@ -115,7 +129,7 @@ export default {
           pannedY = ev.deltaY
           const pan = zoomer.getPan()
           // console.log(pan.x, pan.y, zoomer.getZoom())
-          localStorage['zoom'] = JSON.stringify({ x: pan.x, y: pan.y, scale: zoomer.getZoom() })
+          localStorage['zoom'] = JSON.stringify({ x: pan.x, y: pan.y, scale: zoomer.getZoom(), section: zoomer.$route.params['section'] })
         })
         // Handle pinch
         this.hammer.on('pinchstart pinchmove', function (ev) {
@@ -126,7 +140,7 @@ export default {
           }
           if (ev.deltaX) {
             const pan = zoomer.getPan()
-            localStorage['zoom'] = JSON.stringify({ x: pan.x, y: pan.y, scale: zoomer.getZoom() })
+            localStorage['zoom'] = JSON.stringify({ x: pan.x, y: pan.y, scale: zoomer.getZoom(), section: zoomer.$route.params['section'] })
           }
           zoomer.zoomAtPoint(initialScale * ev.scale, { x: ev.center.x, y: ev.center.y })
         })
@@ -142,35 +156,20 @@ export default {
     }
   }),
   computed: {
-    matchWidth: function () { return this.$store.state.settings.matchWidth },
-    matches () {
-      return this.$store.state.matches
-    },
-    places () {
-      return this.$store.state.places
-    },
-    curves () {
-      return this.$store.state.curves
-    }
+    matchWidth () { return this.$store.state.settings.matchWidth },
+    stages () { return this.$store.state.stages },
+    matches () { return this.$store.state.matches },
+    groups () { return this.$store.state.groups },
+    places () { return this.$store.state.places },
+    curves () { return this.$store.state.curves }
   },
   methods: {
     registerSvgPanZoom (zoomer) {
       this.$store.state.zoom = this
       this.$store.state.zoomer = zoomer
       zoomer.$store = this.$store
+      zoomer.$route = this.$route
       setTimeout(() => (this.visible = true))
-      if (localStorage['zoom']) {
-        const zoomStored = JSON.parse(localStorage['zoom'])
-        if (zoomStored.scale && zoomStored.scale > 0.1 && zoomStored.scale < 3) {
-          zoomer.zoom(zoomStored.scale)
-        }
-        if (zoomStored.x && zoomStored.y) {
-          zoomer.pan({ x: zoomStored.x, y: zoomStored.y })
-        }
-      } else {
-        zoomer.pan({ x: 20, y: 20 })
-        zoomer.zoomAtPoint(0.9, { x: 0, y: 0 })
-      }
     }
   },
   mounted () {
@@ -182,15 +181,22 @@ export default {
   },
   beforeDestroy () {
     if (this.$store) {
-      if (this.$store.zoomer) {
-        this.$store.zoomer.$store = null
-        this.$store.zoomer = null
+      if (this.$store.state.zoomer) {
+        this.$store.state.zoomer.$store = null
+        this.$store.state.zoomer.$route = null
+        this.$store.state.zoomer = null
       }
-      this.$store.zoom = null
+      this.$store.state.zoom = null
     }
   }
 }
 </script>
 
 <style>
+.zoom-fixed {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  overflow: hidden;
+}
 </style>

@@ -22,7 +22,7 @@ const router = new Router({
     },
     {
       path: '/now',
-      redirect: '/events/open-1'
+      redirect: '/events/pairs-1'
     },
     {
       path: '/events/:section/:media?/:score?',
@@ -70,10 +70,13 @@ router.beforeEach((to, from, next) => {
   if (to.meta.title) {
     document.title = to.meta.title
   }
-  // console.log(to.path, to.matched)
+  // console.log(from, to, to.params.section)
   if (to.path === '/admin') {
     localStorage['role'] = 'admin'
     next({ path: '/' })
+  } else if (from.params['section'] && to.params['section'] !== from.params['section']) {
+    next()
+    location.reload()
   } else if (to.path.indexOf('/events') === 0) {
     next()
   } else if (to.path === '/') {

@@ -18,28 +18,18 @@ export default {
     autoPlay: {
       type: Boolean,
       default: false
-    },
-    ended: {
-      type: Function,
-      default: () => {}
-    },
-    canPlay: {
-      type: Function,
-      default: () => {}
     }
   },
   computed: {
     duration: function () {
-      return this.audio ? formatTime(this.totalDuration) : ''
+      return this.audio ? formatTime(this.audio.duration) : ''
     },
     audioIndex: function () {
       // console.log('get audio index')
       return this.audios.indexOf(this.current)
     },
     audio: function () {
-      // console.log('get audio')
-      const a = document.querySelector('#aPlayer' + this.audioIndex)
-      return a
+      return document.querySelector('#aPlayer' + this.audioIndex)
     }
   },
   watch: {
@@ -77,6 +67,10 @@ export default {
   },
 
   methods: {
+    getDuration () {
+      if (!this.audio || !this.audio.readyState || this.audio.readyState < 2) return 0
+      return this.audio.duration
+    },
     getPosition () {
       if (!this.audio || !this.audio.readyState || this.audio.readyState < 2) return 0
       return this.audio.currentTime
@@ -85,10 +79,19 @@ export default {
       if (!this.audio || !this.audio.readyState || this.audio.readyState < 2) return
       this.audio.currentTime = seconds
     },
+    getVolume () {
+      if (!this.audio || !this.audio.readyState || this.audio.readyState < 2) return 0
+      return this.audio.volume
+    },
+    setVolume (value) {
+      if (!this.audio || !this.audio.readyState || this.audio.readyState < 2) return 0
+      this.audio.volume = value
+    },
     setPercentPosition (percent) {
       this.audio.currentTime = parseInt(this.audio.duration / 100 * percent)
     },
     stop () {
+      // console.log('audio stop')
       this.paused = this.playing = false
       if (this.audio) {
         this.audio.pause()
@@ -96,12 +99,14 @@ export default {
       }
     },
     play () {
+      // console.log('play1', this.audio && this.audio.readyState)
+      // console.log('audio play try')
+      if (!this.audio || !this.audio.readyState || this.audio.readyState < 2) return Promise.resolve(null)
+      // console.log('audio play')
+      // console.log('play2', this.current, this.audio.currentTime, this.audio, this.audio.duration)
       this.paused = false
       this.playing = true
-      // console.log('play1', this.audio && this.audio.readyState)
-      if (!this.audio || !this.audio.readyState || this.audio.readyState < 2) return
-      // console.log('play2', this.current, this.audio.currentTime, this.audio, this.audio.duration)
-      this.audio.play()
+      return this.audio.play()
     },
     pause () {
       this.paused = true
@@ -117,10 +122,17 @@ export default {
     mute () {
       this.isMuted = !this.isMuted
       this.audio.muted = this.isMuted
-      this.volumeValue = this.isMuted ? 0 : 100
     },
     reload () {
       this.audio.load()
+    },
+    preloadAudio (audios) {
+      // console.log('---', audios)
+      audios.forEach((audio) => {
+        if (!this.audios.includes(audio)) {
+          this.audios.push(audio)
+        }
+      })
     }
   }
 }

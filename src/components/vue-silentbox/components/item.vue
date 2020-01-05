@@ -13,6 +13,11 @@ export default {
   name: 'SilentboxItem',
   mixins: [ItemMixin],
   props: {
+    // Media id
+    'mid': {
+      type: String,
+      required: true
+    },
     // Media source, it could be an image or a youtube video.
     'src': {
       type: String,
@@ -86,6 +91,7 @@ export default {
     // Push items to the parent component.
     // TODO: do it in parent component
     this.$parent.items.list.push({
+      mid: this.mid,
       src: this.src,
       autoplay: this.autoplay,
       desc: this.description,

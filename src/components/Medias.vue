@@ -7,6 +7,10 @@
            :title="media.length ? media[5] : ''"
            @click="$event.shiftKey ? onSelect(media) : onClick(media[6])"
     ></image>
+<!--
+    @mouseover="onOver($event, media[7])"
+    @mouseout="onOut($event, media[7])"
+-->
   </g>
 </template>
 
@@ -29,13 +33,21 @@ export default {
     }
   },
   methods: {
+    onOver ($event, seedString) {
+      if (!this.diagonal) this.$store.commit('overGroupCell', { order: this.order, $event })
+    },
+    onOut ($event, seedString) {
+      if (!this.diagonal) this.$store.commit('outGroupCell', { order: this.order, $event })
+    },
     onClick (id) {
+      // console.log('onClick media', this.$route.params.media)
       this.$store.state.zoom.$emit('clickMedia', id)
       if (this.$route.params.media !== id) {
         this.$router.replace({ params: { ...this.$route.params, media: id } })
       }
     },
     onSelect (media) {
+      // console.log('onSelect media', media, this.$route.params.media)
       this.$store.state.edit.itemsToMove.push(media)
     }
   }

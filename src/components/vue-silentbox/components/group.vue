@@ -1,8 +1,8 @@
 <template>
-    <section id="silentbox-group">
-        <slot></slot>
-        <silentbox-overlay></silentbox-overlay>
-    </section>
+  <section id="silentbox-group">
+    <slot></slot>
+    <silentbox-overlay></silentbox-overlay>
+  </section>
 </template>
 
 <script>
@@ -13,6 +13,7 @@ export default {
   data () {
     return {
       overlayVisibility: false,
+      mid: '',
       embedUrl: '',
       items: {
         total: 0,
@@ -25,37 +26,40 @@ export default {
   },
   watch: {
     /**
-             * Update total number of items when object changes.
-             *
-             * @param  {Object} current
-             * @param  {Object} old
-             * @return {void}
-             */
+     * Update total number of items when object changes.
+     *
+     * @param  {Object} current
+     * @param  {Object} old
+     * @return {void}
+     */
     'items.list': function (current, old) {
       this.updateTotal(current)
     }
   },
   methods: {
     /**
-             * Update count of total items in group.
-             *
-             * @param  {object} items
-             * @return {void}
-             */
+     * Update count of total items in group.
+     *
+     * @param  {object} items
+     * @return {void}
+     */
     updateTotal (items) {
       this.items.total = this.items.list.length
     },
     /**
-             * Move to next item in a group.
-             *
-             * @return {void}
-             */
+     * Move to next item in a group.
+     *
+     * @return {void}
+     */
     nextItem () {
+      // console.log('next', this.items.list, this.items.position, this.items.list[this.items.position].id)
       if (this.items.position !== (this.items.total - 1)) {
         this.items.position++
       } else {
         this.items.position = 0
       }
+
+      this.mid = this.items.list[this.items.position].mid
 
       this.embedUrl = this.items.list[this.items.position].src
 
@@ -66,16 +70,18 @@ export default {
         ? this.items.list[this.items.position].desc : false
     },
     /**
-             * Move to previous item in a group.
-             *
-             * @return {void}
-             */
+     * Move to previous item in a group.
+     *
+     * @return {void}
+     */
     prevItem () {
       if (this.items.position !== 0) {
         this.items.position--
       } else {
         this.items.position = this.items.total - 1
       }
+
+      this.mid = this.items.list[this.items.position].mid
 
       this.embedUrl = this.items.list[this.items.position].src
 
@@ -86,10 +92,10 @@ export default {
         ? this.items.list[this.items.position].desc : false
     },
     /**
-             * Set item that shuld be displayed.
-             *
-             * @return {void}
-             */
+     * Set item that shuld be displayed.
+     *
+     * @return {void}
+     */
     setOpened (item) {
       this.embedUrl = item.url
       this.items.position = item.position

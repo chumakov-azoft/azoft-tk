@@ -4,9 +4,9 @@
 
     <div id="silentbox-overlay__content">
       <div id="silentbox-overlay__embed">
-        <div id="silentbox-overlay__container" @click.stop="onClick">
-          <keep-alive>
-            <youtube v-if="tubeVideo" :video-id="getEmbedUrl" ref="tube" width="100%" height="100%"
+        <div id="silentbox-overlay__container" @click.stop>
+          <keep-alive v-if="tubeVideo">
+            <youtube :video-id="getEmbedUrl" ref="tube" width="100%" height="100%"
                      @ready="onReady"
                      @playing="onStartPlaying"
                      @paused="onPaused"
@@ -25,7 +25,7 @@
 
             <img width="auto" height="auto" :src="getEmbedUrl" v-if="!vimeoVideo && !tubeVideo">
         </div>
-        <p id="silentbox-overlay__description" v-if="this.$parent.description" @click.stop="onClick">{{
+        <p id="silentbox-overlay__description" v-if="this.$parent.description" @click.stop>{{
           this.$parent.description }}</p>
       </div>
     </div>
@@ -81,10 +81,10 @@ export default {
   },
   computed: {
     audioTime () {
-      return this.videoState.audioTime || []
+      return this.videoState.audioTime || [0]
     },
     audioFiles () {
-      return this.videoState.audio || []
+      return this.videoState.audio || ['']
     },
     scoreTime () {
       return this.videoState.scoreTime
@@ -137,17 +137,18 @@ export default {
           this.tubePlayer.playVideo()
         }
       } else {
-        this.tubePlaying = false
-        this.tubePlayer.pauseVideo()
-        this.audioPlayer.stop()
-        document.onkeydown = this.oldKeyDown
-        this.keyAdded = false
+        if (this.tubeVideo) {
+          this.stopTubeVideo()
+        }
         if (this.$route.params.media !== null) {
           this.$router.push({ params: { ...this.$route.params, score: null, media: null } })
         }
       }
     },
     tubePosition: function (value) {
+      if (!this.tubeData) {
+        return
+      }
       let i = 0
       const l = this.scoreTime ? this.scoreTime.length - 1 : 0
       while (i < l && this.tubePosition > this.scoreTime[i]) {
@@ -165,24 +166,37 @@ export default {
         }
       }
     },
-    audioPosition: function (value) {
+    audioPosition: async function (seconds) {
+      if (!this.tubeData) {
+        return
+      }
       let i = 0
       const l = this.audioTime ? this.audioTime.length - 1 : 0
       while (i < l && this.audioPosition > this.audioTime[i]) {
         i++
       }
       const p = this.audioPosition < this.audioTime[i] ? i - 1 : i
-      const current = (value - this.audioTime[p])
-      console.log('audio pos', current, this.audioPosition, this.audioTime[i])
+      const p1 = (seconds - this.audioTime[p])
       if (this.audioFiles[p] !== this.audioCurrent) {
-        // console.log('set audio file', this.audioFiles[p])
+        this.audioPlayer.stop()
         this.audioCurrent = this.audioFiles[p]
+        // console.log('set audio file', this.audioFiles[p], this.audioPosition)
       }
-      if (Math.abs(current - this.audioPlayer.getPosition()) > 3) {
-        this.audioPlayer.setPosition(current)
+      if (Math.abs(p1 - this.audioPlayer.getPosition()) > 3) {
+        this.audioPlayer.setPosition(p1)
       }
-      if (this.tubePlaying && this.audioPlayer.paused) {
-        setTimeout(() => this.audioPlayer.play())
+      // console.log('audio pos', p1, this.audioPlayer.getPosition(), this.audioPlayer.getDuration())
+      // console.log('audio pos', this.audioPosition, this.tubePlaying, this.audioPlayer.playing)
+      if (this.tubePlaying && !this.audioPlayer.playing) {
+        // console.log('play it', this.audioPlayer.duration)
+        this.audioPlayer.play().catch(response => {
+          // console.error(response)
+          this.tubePlayer.pauseVideo()
+        })
+      }
+      const volume = await this.tubePlayer.isMuted() ? 0 : await this.tubePlayer.getVolume() / 100
+      if (Math.abs(volume - this.audioPlayer.getVolume()) > 0.1) {
+        this.audioPlayer.setVolume(volume)
       }
     }
   },
@@ -224,9 +238,33 @@ export default {
         } else if ((e.code === 'End')) {
           this.lastScore()
         } else if ((e.code === 'Space')) {
-          this.tubePlayer.playVideo()
+          this.playPauseTubeVideo()
         } else if ((e.code === 'KeyM') && e.altKey) {
           this.audioPlayer.mute()
+        } else if ((e.code === 'KeyV') && e.altKey) {
+          const board = document.querySelector('#board')
+          console.log(board)
+          if (board) {
+            if (board.classList.contains('board-hide')) {
+              board.classList.remove('board-hide')
+            } else {
+              board.classList.add('board-hide')
+            }
+          }
+        } else if ((e.code === 'KeyT') && e.altKey) {
+          let current = 0
+          let n = 0
+          for (let i = 0; i < this.score.length; i++) {
+            let score = this.score[i].split(' ')
+            if (score[2] === '0' && score[3] === '0' && i !== 0) {
+              n++
+              let time = new Date(this.scoreTime[i] * 1000).toISOString().substr(14, 5)
+              let timeEnd = new Date(this.scoreTime[i] * 1000 - current).toISOString().substr(14, 5)
+              let timeStart = new Date(current).toISOString().substr(14, 5)
+              console.log(n, 'starts:', timeStart, 'length:', timeEnd, 'ends:', time)
+              current = this.scoreTime[i] * 1000
+            }
+          }
         }
       }
     },
@@ -245,9 +283,15 @@ export default {
     },
     moveToNextItem () {
       this.$parent.nextItem()
+      if (this.$route.params.media !== this.$parent.mid) {
+        this.$router.replace({ params: { ...this.$route.params, score: null, media: this.$parent.mid } })
+      }
     },
     moveToPreviousItem () {
       this.$parent.prevItem()
+      if (this.$route.params.media !== this.$parent.mid) {
+        this.$router.replace({ params: { ...this.$route.params, score: null, media: this.$parent.mid } })
+      }
     },
     closeSilentboxOverlay () {
       this.$parent.$emit('closeSilentboxOverlay')
@@ -266,10 +310,16 @@ export default {
         }
         return this.videoId
       } else if (url.includes('vimeo')) {
+        if (this.tubeVideo) {
+          this.stopTubeVideo()
+        }
         this.tubeVideo = false
         this.vimeoVideo = true
         return this.getVimeoVideo(url)
       } else {
+        if (this.tubeVideo) {
+          this.stopTubeVideo()
+        }
         // Given url is not a video URL thus return it as it is.
         this.tubeVideo = false
         this.vimeoVideo = false
@@ -308,19 +358,19 @@ export default {
     },
     onStartPlaying () {
       this.tubePlaying = true
-      console.log('onStartPlaying')
+      // console.log('onStartPlaying')
       this.clearInterval()
       this.interval = setInterval(this.updateScore, 100)
-      this.audioPlayer.play()
+      this.updateScore()
     },
     onPaused () {
       this.clearInterval()
       this.tubePlaying = false
       this.audioPlayer.pause()
-      console.log('onPaused')
+      // console.log('onPaused')
     },
     onReady () {
-      console.log('onReady')
+      // console.log('onReady')
       this.tubePlayer = this.$refs.tube.player
       this.audioPlayer = this.$refs.audioPlayer
       // console.log(this.$refs.tube, this.$refs.audioPlayer)
@@ -328,24 +378,38 @@ export default {
         this.startTubeVideo()
       }
     },
+    stopTubeVideo () {
+      this.tubePlaying = false
+      this.tubePlayer.pauseVideo()
+      this.audioPlayer.stop()
+      document.onkeydown = this.oldKeyDown
+      this.keyAdded = false
+    },
     startTubeVideo () {
       if (!this.keyAdded) setTimeout(() => this.initKey())
       this.tubePlaying = false
       this.tubePlayer.playVideo()
       this.loadBoard(this.videoId)
     },
+    async playPauseTubeVideo () {
+      const playing = await this.tubePlayer.getPlayerState()
+      playing ? this.tubePlayer.pauseVideo() : this.tubePlayer.playVideo()
+    },
     async loadBoard (id) {
       await this.$store.dispatch('loadVideoBoard', id)
-      this.tubeData = true
       this.videoState = this.$store.state.video
-      if (this.audioFiles && this.audioFiles[0] !== this.audioCurrent) {
-        // console.log('set audio file 0', this.audioFiles[0])
-        this.audioCurrent = this.audioFiles[0]
-      }
-      // console.log(2222, id, this.$store.state.video.audio, this.audioTime, this.audioFiles)
-      this.firstScore()
-      if (this.tubePlayer && this.$route.params.score) {
-        this.seekScore()
+      this.tubeData = !!this.videoState
+      if (this.tubeData) {
+        this.audioPlayer.preloadAudio(this.videoState.audio)
+        if (this.audioFiles && this.audioFiles[0] !== this.audioCurrent) {
+          // console.log('set audio file 0', this.audioFiles[0])
+          this.audioCurrent = this.audioFiles[0]
+        }
+        // console.log(2222, id, this.$store.state.video.audio, this.audioTime, this.audioFiles)
+        this.firstScore()
+        if (this.tubePlayer && this.$route.params.score) {
+          this.seekScore()
+        }
       }
     },
     seekScore (event) {
@@ -358,7 +422,7 @@ export default {
       }
     },
     updateScore () {
-      if (!this.tubePlayer || !this.isVisible) {
+      if (!this.tubePlayer || !this.tubeData || !this.isVisible) {
         this.clearInterval()
       }
       this.tubePlayer.getCurrentTime().then((seconds) => {
@@ -394,10 +458,6 @@ export default {
       this.tubePositionIndex = this.scoreTime.length - 1
       this.tubePlayer.seekTo(this.scoreTime[this.tubePositionIndex])
     },
-    onClick (event) {
-      event.stopImmediatePropagation()
-      // just prevent
-    },
     clearInterval () {
       if (this.interval) {
         clearInterval(this.interval)
@@ -422,6 +482,10 @@ export default {
 $main:   #fff;
 $accent: #58e8d2;
 $bg: #000;
+
+.board-hide {
+  display: none;
+}
 
 .silentbox-is-opened {
   overflow: hidden;

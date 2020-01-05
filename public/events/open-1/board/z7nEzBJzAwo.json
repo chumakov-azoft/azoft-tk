@@ -1,6 +1,6 @@
 {
-  "audioTime": [0,120],
-  "audio": ["https://diamanter.github.io/facerobin/media/1-59.song","https://diamanter.github.io/facerobin/media/3.50.song"],
+  "audioTime": [0,"4:45","10:08"],
+  "audio": ["https://diamanter.github.io/facerobin/media/4.49.song","https://diamanter.github.io/facerobin/media/5.21.song","https://diamanter.github.io/facerobin/media/2.51.song"],
   "chevron1": "#fff100",
   "chevron2": "#990063",
   "rating1": "89",

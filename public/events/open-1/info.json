@@ -1,3 +1,10 @@
 {
-  "name": "Azoft Open 1.0"
+  "name": "Azoft Open 1.0",
+  "stages": ["finals"],
+  "showLogo": true,
+  "zoom": {
+    "x": 20,
+    "y": 20,
+    "scale": 0.9
+  }
 }

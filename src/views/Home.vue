@@ -47,8 +47,8 @@
 
     <silentbox-group>
       <silentbox-item v-for="(media, index) in $store.state.medias" :key="'thumb' + index" :id="'thumb--' + media[6]" class="d-none"
-        :src="media[4][0] === '/' ? $store.state.settings.base + media[4] : media[4]"
-        :description="media.length ? media[5] : ''" :autoplay="true" :hide-controls="true">
+        :src="media[4][0] === '/' ? $store.state.settings.base + media[4] : media[4]" :mid="media[6]"
+        :description="media.length ? media[5] : ''" :autoplay="false" :hide-controls="true">
       </silentbox-item>
     </silentbox-group>
 
@@ -86,11 +86,15 @@ export default {
     this.$store.commit('initialize', this.section)
     document.onkeydown = (e) => {
       e = e || window.event
-      console.log(e.key)
-      if (e.key < 10 && e.key >= 0) {
-        this.$store.dispatch('setMatchResult', +e.key)
-      } else if (e.key === 't' || e.key === 'е') {
-        this.$store.dispatch('setMatchResult', 'Tex')
+      console.log(e.code)
+      if (e.code.indexOf('Digit') === 0 && e.key < 10 && e.key >= 0) {
+        this.$store.state.edit.type === 'group' ? this.$store.dispatch('setGroupResult', +e.key) : this.$store.dispatch('setMatchResult', +e.key)
+      } else if (e.code === 'KeyT') {
+        this.$store.state.edit.type === 'group' ? this.$store.dispatch('setGroupResult', 'Tex') : this.$store.dispatch('setMatchResult', 'Tex')
+      } else if (e.code === 'Space') {
+        this.$store.state.edit.type === 'group' ? this.$store.dispatch('setGroupProgress') : this.$store.dispatch('setMatchProgress')
+      } else if (e.code === 'Backspace') {
+        this.$store.state.edit.type === 'group' ? this.$store.dispatch('deleteGroupResult') : this.$store.dispatch('deleteMatchResult')
       } else if (e.code === 'ArrowLeft') {
         this.$store.dispatch('moveObjects', { dx: e.shiftKey ? -10 : -1, dy: 0 })
       } else if (e.code === 'ArrowRight') {
@@ -101,15 +105,17 @@ export default {
         this.$store.dispatch('moveObjects', { dy: e.shiftKey ? 10 : 1, dx: 0 })
       } else if (e.code === 'Escape') {
         this.$store.state.edit.itemsToMove = []
-      } else if (e.key === 'c' && e.altKey) {
+      } else if (e.code === 'KeyC' && e.altKey) {
         this.$store.dispatch('clearStorage')
-      } else if (e.key === 'a' && e.altKey) {
+      } else if (e.code === 'KeyA' && e.altKey) {
         this.$store.dispatch('restoreFromStorage')
-      } else if ((e.key === 's' || e.key === 'ы') && e.altKey && e.ctrlKey) {
-        this.$store.dispatch('saveFiles')
-      } else if ((e.key === 's' || e.key === 'ы') && e.altKey) {
+      } else if ((e.code === 'KeyS') && e.altKey && e.ctrlKey) {
+        this.$store.dispatch('saveAllResults')
+      } else if ((e.code === 'KeyS') && e.altKey) {
         this.$store.dispatch('saveResults')
-      } else if (e.key === 'l' && e.altKey) {
+      } else if ((e.code === 'KeyF') && e.altKey) {
+        this.$store.dispatch('saveFiles')
+      } else if (e.code === 'KeyL' && e.altKey) {
         console.log(this.$route.name)
         if (this.$route.name === 'home') {
           localStorage.githubToken = ''

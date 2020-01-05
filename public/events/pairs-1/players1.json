@@ -1,0 +1,106 @@
+{
+  "players": [
+    {
+      "name": "Чумаков Денис Викторович",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "295"
+    },
+    {
+      "name": "Экгардт Евгений",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "152"
+    },
+    {
+      "name": "Смаль Екатерина",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "118"
+    },
+    {
+      "name": "Касаткин Руслан",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "102"
+    },
+    {
+      "name": "Киселёв Алексей",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "102"
+    },
+    {
+      "name": "Клюкина Анастасия",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "100"
+    },
+    {
+      "name": "Панкрашев Кирилл",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "48"
+    },
+    {
+      "name": "Лихачёв Олег",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "100"
+    },
+    {
+      "name": "Слесарев Алексей",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "100"
+    },
+    {
+      "name": "Меркурьев Захар",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "34"
+    },
+    {
+      "name": "Изох Полина",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "63"
+    },
+    {
+      "name": "Смелов Семён",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "50"
+    },
+    {
+      "name": "Чаюн Игорь",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "50"
+    },
+    {
+      "name": "Ожиганов Иван",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "50"
+    },
+    {
+      "name": "Ростовцев Руслан",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "73"
+    },
+    {
+      "name": "Бычков Никита",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "93"
+    },
+    {
+      "name": "Горшков Денис",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "55"
+    }
+  ]
+}

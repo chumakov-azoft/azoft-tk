@@ -1,6 +1,6 @@
 {
   "name": "tt3",
-  "version": "0.1.7",
+  "version": "0.1.14",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve --port 7001",

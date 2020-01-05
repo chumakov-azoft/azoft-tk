@@ -16,6 +16,11 @@ export default {
   name: 'SilentboxSingle',
   mixins: [ItemMixin],
   props: {
+    // Media id
+    'mid': {
+      type: String,
+      required: true
+    },
     // Media source, it could be an image or a youtube video.
     'src': {
       type: String,

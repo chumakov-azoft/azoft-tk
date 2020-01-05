@@ -1,3 +1,15 @@
 {
-  "name": "Azoft Open 1.0"
+  "name": "Azoft Pairs 1.0",
+  "type": "pairs",
+  "rtype": "2.5",
+  "showLogo": false,
+  "shortType": "onlyName",
+  "nameWidth": 130,
+  "stretchNames": true,
+  "stages": ["groups"],
+  "zoom": {
+    "x": 50,
+    "y": 50,
+    "scale": 1.3
+  }
 }
