@@ -39,8 +39,7 @@
 
         <g v-for="(stage, s) in stages" :key="'stage' + '-' + s" :id="'stage' + s">
           <g v-for="(games, index) in matches[s]" :key="'game' + index">
-            <match v-for="(game, count) in (games || []).filter(Boolean)" :key="'match' + stage + '.' + index + '.' + count"
-                   :transform1="`translate(0 ${count * 80})`"
+            <match v-for="(game, count) in (games || []).filter(Boolean)" :key="'match' + s + '.' + index + '.' + count"
                    :seeds="game.seeds"
                    :order="game.order"
                    :names="game.names"
@@ -51,7 +50,7 @@
                    :status="game.status"
             ></match>
           </g>
-          <g v-for="(place, count) in (places[s] || []).filter(Boolean)" :key="'place' + stage + '.' + count">
+          <g v-for="(place, count) in (places[s] || []).filter(Boolean)" :key="'place' + s + '.' + count">
             <place v-if="place.seed"
               :seed="place.seed"
               :order="place.order"
@@ -61,12 +60,11 @@
               :delta="place.delta"
             ></place>
           </g>
-          <group v-for="(group, count) in (groups[s] || [])" :key="'group' + stage + '.' + count"
-                 :index="group.index"
-                 :order="group.order"
-                 :seeds="group.seeds"
-                 :position="group.position"
-          ></group>
+          <groupRow
+            :s = s
+            :position="[0,0]"
+          >
+          </groupRow>
         </g>
 
         <medias></medias>
@@ -84,9 +82,9 @@ import draggable from 'vuedraggable'
 import Match from './Match.vue'
 import Place from './Place.vue'
 import Medias from './Medias.vue'
-import Group from './Group'
+import GroupRow from './GroupRow'
 export default {
-  components: { SvgPanZoom, Group, Match, Place, Medias },
+  components: { SvgPanZoom, GroupRow, Match, Place, Medias },
   data: () => ({
     visible: false,
     hammer: null,
@@ -159,7 +157,6 @@ export default {
     matchWidth () { return this.$store.state.settings.matchWidth },
     stages () { return this.$store.state.stages },
     matches () { return this.$store.state.matches },
-    groups () { return this.$store.state.groups },
     places () { return this.$store.state.places },
     curves () { return this.$store.state.curves }
   },

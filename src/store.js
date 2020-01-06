@@ -499,19 +499,17 @@ function createGroups (state, s, groups, mesh, seeds, scores, places, players) {
     if (!seeds[g]) {
       continue
     }
-    /* const groupSeeds = seeds[g]
-     const groupSeedsLen = groupSeeds.length
+    const groupSeeds = seeds[g]
+    const groupSeedsLen = groupSeeds.length
     let groupScores = scores[g]
     if (!groupScores) {
       Vue.set(scores, g, [])
       groupScores = scores[g]
-      // groupScores = []
     }
     groupScores.length = groupSeedsLen
     for (let j = 0; j < groupSeedsLen; j++) {
       if (!groupScores[j]) {
         Vue.set(groupScores, j, [])
-        // groupScores[j] = []
       }
       for (let k = 0; k < groupSeedsLen; k++) {
         if (k === j) {
@@ -520,11 +518,9 @@ function createGroups (state, s, groups, mesh, seeds, scores, places, players) {
           }
         } else if (!groupScores[j][k]) {
           Vue.set(groupScores[j], k, [0, 0, '', 0, 0])
-          // groupScores[j][k] = [0, 0, '']
         }
       }
-      // groupScores[j].length = groupSeedsLen
-    } */
+    }
     groups.push({
       index: g,
       stage: s,

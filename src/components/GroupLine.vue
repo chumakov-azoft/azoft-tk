@@ -2,7 +2,7 @@
   <g>
     <rect class="group-player-shade" :width="backWidth" height="30" v-if="backVisible"></rect>
     <rect class="group-player" :width="nameWidth + 70" height="30"></rect>
-    <rect class="group-player-end" :x="seeds.length * 30 + nameWidth + 60" :width="backWidth - seeds.length * 30 - nameWidth - 60" height="30"></rect>
+    <rect class="group-player-end" :x="tableAndNameWidth" :width="Math.max(1, backWidth - tableAndNameWidth)" height="30"></rect>
     <image :href="logo" x="42.5" y="6.5" height="18" width="18" v-if="showLogo"></image>
     <text x="12" y="19" text-anchor="middle" class="group-player-order">{{order[2] + 1}}</text>
     <text x="36" y="19" text-anchor="middle" class="group-player-rating">{{rating}}</text>
@@ -13,16 +13,16 @@
                   :order="[...order, seed2]"
       ></group-cell>
     </g>
-    <text :x="seeds.length * 30 + nameWidth + 95" y="21" width="45" height="21" text-anchor="middle" class="group-player-score">{{total}}</text>
-    <g :transform="`translate(${nameWidth + 110 + seeds.length * 30} 0)`">
+    <text :x="tableAndNameWidth + 35" y="21" width="45" height="21" text-anchor="middle" class="group-player-score">{{total}}</text>
+    <g :transform="`translate(${tableAndNameWidth + 50} 0)`">
       <group-delta v-for="(delta, count) in deltas" :key="'groupDelta' + count" :id="'group-' + seed + '-' + delta.seed2" class="group-delta"
                    :transform="`translate(${delta.x + 8} 0)`"
                    :order="[...order, delta.seed2]"
                    :delta = delta
       ></group-delta>
     </g>
-    <text :x="backWidth - 20" y="21" text-anchor="middle" class="group-player-place" v-if="place.length === 1">{{place[0]}}</text>
-    <text :x="backWidth - 20" y="21" text-anchor="middle" class="group-player-range" v-if="place.length === 2">{{place[0] + '..' + place[1]}}</text>
+    <text :x="backWidth - 25" y="21" text-anchor="middle" class="group-player-place" v-if="place.length === 1">{{place[0]}}</text>
+    <text :x="backWidth - 25" y="21" text-anchor="middle" class="group-player-range" v-if="place.length === 2">{{place[0] + '..' + place[1]}}</text>
   </g>
 </template>
 
@@ -51,7 +51,7 @@ export default {
     },
     backWidth: {
       type: Number,
-      default: 0
+      default: 300
     }
   },
   data: () => ({
@@ -64,6 +64,8 @@ export default {
     logo: function () { return this.$store.state.players[this.seed].logo },
     name: function () { return this.$store.state.players[this.seed].short },
     nameWidth: function () { return this.$store.state.settings.nameWidth },
+    tableWidth: function () { return this.seeds.length * 30 },
+    tableAndNameWidth: function () { return this.tableWidth + this.nameWidth + 60 },
     total: function () {
       return this.result.reduce((acc, item) => (item ? (item[2] === 'win1' ? acc + 2 : item[2] === 'win2' ? acc + 1 : acc) : acc), 0)
     },
