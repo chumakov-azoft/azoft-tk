@@ -69,7 +69,7 @@ export default new Vuex.Store({
   mutations: {
     initialize (state, section) {
       if (section) {
-        const host = window.location.hostname.indexOf('localhost') === -1 ? 'https://azoft.tk/' : ''
+        const host = window.location.hostname.indexOf('localhost') === -1 ? 'https://akadem.tk/' : ''
         console.log(host)
         // const host = window.location.hostname.indexOf('localhost') === -1 ? 'https://raw.githubusercontent.com/chumakov-azoft/azoft-tk/master/' : ''
         state.settings.base = 'events/' + section + '/'
@@ -90,7 +90,8 @@ export default new Vuex.Store({
           state.settings.type = state.info.type
           state.settings.rtype = state.info.rtype
           state.settings.shortType = state.info.shortType
-          state.settings.nameWidth = state.info.nameWidth
+          if (state.info.nameWidth) state.settings.nameWidth = state.info.nameWidth
+          if (state.info.matchWidth) state.settings.matchWidth = state.info.matchWidth
           state.settings.stretchNames = state.info.stretchNames
           state.settings.showLogo = state.info.showLogo
           state.stages = state.info.stages
@@ -215,7 +216,10 @@ export default new Vuex.Store({
         setGroupScore(state, state.edit.current, key)
         // commit('setGroupScore', state.edit.current, key)
         state.edit.next = true
-        if (key >= state.settings.maxScore || key === 'Tex') {
+        if (key === 'Tex') {
+          setGroupWinner(state, state.edit.current, true)
+          setGroupScore(state, state.edit.current, 'Tex', true)
+        } if (key >= state.settings.maxScore) {
           setGroupWinner(state, state.edit.current)
           setGroupScore(state, state.edit.current, 0, true)
           // commit('setGroupWinner')
@@ -251,8 +255,8 @@ export default new Vuex.Store({
         // commit('setMatchScore', { i, j, p, score: key })
         state.edit.next = true
         if (key >= state.settings.maxScore || key === 'Tex') {
-          setMatchWinner(state, s, i, j, p)
-          setMatchScore(state, s, i, j, 1 - p, 0)
+          setMatchWinner(state, s, i, j, 1 - p)
+          setMatchScore(state, s, i, j, 1 - p, 'Tex')
           // commit('setMatchWinner', { i, j, p })
           // commit('setMatchScore', { i, j, p: 1 - p, score: 0 })
         } else {
@@ -335,10 +339,10 @@ export default new Vuex.Store({
     saveFiles ({ state, commit }) {
       if (state.settings.type === 'pairs') {
         // git.saveFile('info.json', JSON.stringify({ ...state.info }).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
-        /* git.saveFile('players.json', JSON.stringify({
+        git.saveFile('players.json', JSON.stringify({
           players: state.players0.map(({ short, currentRating, ...items }) => items),
           pairs: state.players.map(({ location, location2, currentRating, ...items }) => items)
-        }).replace('{', '{\n').replace('[', '[\n').replace(/",/gm, '",\n').replace(/"pairs"/gm, '\n"pairs"').replace(/}/gm, '\n}').replace(/{/gm, '{\n')) */
+        }).replace('{', '{\n').replace('[', '[\n').replace(/",/gm, '",\n').replace(/"pairs"/gm, '\n"pairs"').replace(/}/gm, '\n}').replace(/{/gm, '{\n'))
         git.saveFile('scores.json', JSON.stringify({ scores: state.scores }).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
       } else {
         git.saveFile('seeds.json', JSON.stringify({ seeds: state.seeds }).replace('[[', '[\n[').replace(/\],\[/gm, '],\n['))
@@ -382,18 +386,21 @@ function preparePairs (state, pairs) {
     state.players = pairs
     return
   }
+/*
   state.players0.sort((a, b) => {
     return b.currentRating - a.currentRating
   })
+*/
   // console.log(state.players0)
   state.players = []
   const l = Math.floor(state.players0.length / 2) * 2
   for (let i = 0; i < l / 2; i++) {
-    let player1 = state.players0[i]
-    let player2 = state.players0[l - i - 1]
+    let player1 = state.players0[i * 2]
+    let player2 = state.players0[i * 2 + 1]
+    // let player2 = state.players0[l - i - 1]
     let r1 = player1.currentRating
     let r2 = player2.currentRating
-    let w = (r1 - r2) / (r1 + r2) / 2.5 + 0.5
+    let w = state.settings.rtype === 'average' ? 0.5 : (r1 - r2) / (r1 + r2) / 2.5 + 0.5
     // console.log(i, l, player1, player2, w)
     let r = state.settings.rtype === 'sum' ? r1 + r2 : Math.round(r1 * (1 - w) + r2 * w)
     state.players[i] = {
@@ -404,13 +411,14 @@ function preparePairs (state, pairs) {
       location: player1.location,
       location2: player2.location,
       short: player1.short + ' и ' + player2.short,
-      currentRating: r,
-      rating: r
+      currentRating: Math.round(r),
+      rating: Math.round(r)
     }
   }
   state.players.sort((a, b) => {
     return b.currentRating - a.currentRating
   })
+  console.log(state.players, state.players0)
 }
 
 function preparePlayers (state, seedArr) {
@@ -531,11 +539,11 @@ function createGroups (state, s, groups, mesh, seeds, scores, places, players) {
 
     const len = seeds[g].length
     places.push(Array(len))
-    calcGroupPlaces(state, seeds[g], scores[g], places[g])
+    calcGroupPlaces(state, seeds[g], scores[g], places[g], s, g)
   }
 }
 
-function calcGroupPlaces (state, seeds, scores, places) {
+function calcGroupPlaces (state, seeds, scores, places, s, g) {
   let finished = 0
   const current = []
   const len = scores.length
@@ -570,15 +578,26 @@ function calcGroupPlaces (state, seeds, scores, places) {
   // all games
   if (finished === len * len - len) {
     current.sort((a, b) => b.max - a.max)
-    console.log('full', current)
+    // console.log('full', current)
     for (let i = 0; i < current.length - 1; i++) {
       i += resolveGroupPlaces(scores, current, i, i + 1)
     }
     current.forEach((item, index) => {
       Vue.set(places, item.index, item.split ? [item.split] : [index + 1])
+      if (s === 0) {
+        item.maxPlace = index + 1
+        if (item.maxPlace <= 3) {
+          console.log(333, s, g, index, state.seeds[s + 1][g])
+          const place = g === 0 ? (item.maxPlace - 1) * 2 : (item.maxPlace - 1) * 2 + 1
+          Vue.set(state.seeds[s + 1][0], place, state.seeds[s][g][item.index])
+        } else {
+          const place = g === 0 ? (item.maxPlace - 4) * 2 : (item.maxPlace - 4) * 2 + 1
+          Vue.set(state.seeds[s + 1][1], place, state.seeds[s][g][item.index])
+        }
+      }
       if (index < 3) {
         if (!item.split) {
-          setTimeout(() => document.querySelectorAll('#player' + seeds[item.index] + ':not(.empty)').forEach((element) => element.classList.add('place--' + (index + 1))))
+          // setTimeout(() => document.querySelectorAll('#player' + seeds[item.index] + ':not(.empty)').forEach((element) => element.classList.add('place--' + (index + 1))))
         }
       }
     })
@@ -607,9 +626,16 @@ function calcGroupPlaces (state, seeds, scores, places) {
   // set places
   current.forEach((item, index) => {
     Vue.set(places, item.index, item.minPlace === item.maxPlace ? [item.minPlace] : [item.maxPlace, item.minPlace])
-    if (item.maxPlace <= 3) {
-      if (item.minPlace === item.maxPlace) {
-        setTimeout(() => document.querySelectorAll('#player' + seeds[item.index] + ':not(.empty)').forEach((element) => element.classList.add('place--' + (item.maxPlace))))
+    if (item.minPlace === item.maxPlace) {
+      if (s === 0) {
+        if (item.maxPlace <= 3) {
+           console.log(333, s, g, index, state.seeds[s + 1][g])
+          const place = g === 0 ? (item.maxPlace - 1) * 2 : (item.maxPlace - 1) * 2 + 1
+          Vue.set(state.seeds[s + 1][0], place, state.seeds[s][g][item.index])
+        } else {
+          const place = g === 0 ? (item.maxPlace - 4) * 2 : (item.maxPlace - 4) * 2 + 1
+          Vue.set(state.seeds[s + 1][1], place, state.seeds[s][g][item.index])
+        }
       }
     }
   })
@@ -622,7 +648,7 @@ function calcGroupPlaces (state, seeds, scores, places) {
         Vue.set(places, current[j].index, current[j].split ? [current[j].split] : [j + 1])
         if (j < 3) {
           if (!current[j].split) {
-            setTimeout(() => document.querySelectorAll('#player' + seeds[current[j].index] + ':not(.empty)').forEach((element) => element.classList.add('place--' + (j + 1))))
+            // setTimeout(() => document.querySelectorAll('#player' + seeds[current[j].index] + ':not(.empty)').forEach((element) => element.classList.add('place--' + (j + 1))))
           }
         }
       }
@@ -645,7 +671,7 @@ function resolveGroupPlaces (scores, arr, start, maxPlace) {
   if ((start > 0 && arr[start - 1].max === arr[start].max) || (start + len + 1 < arr.length && arr[start + len + 1].max === arr[start].max)) {
     return 0
   }
-  console.log('resolving ' + (start + 1) + '-' + (start + len + 1) + ', score: ' + arr[start].max)
+  console.log('resolving ' + (start + 1) + '-' + (start + len) + ', score: ' + arr[start].max)
   if (len === 2) {
     let result = scores[arr[start].index][arr[start + 1].index]
     let d = result[0] - result[1]
@@ -671,10 +697,10 @@ function resolveGroupPlaces (scores, arr, start, maxPlace) {
     let sorted = arr.splice(start, len).sort((a, b) => b.max - a.max)
     arr.splice(start, 0, ...sorted)
     let value = arr[start].max
-    console.log(sorted)
+    // console.log(sorted, len)
     for (let i = start + 1; i < start + len; i++) {
       if (arr[i].max === value) {
-        if (i + 1 === len || arr[i + 1].max !== value) {
+        if (i + 1 === start + len || arr[i + 1].max !== value) {
           let result = scores[arr[i - 1].index][arr[i].index]
           let d = result[0] - result[1]
           arr[i - 1].max += d / 1000
@@ -886,18 +912,20 @@ function overGroupCell (state, { order, $event }) {
   const g = order[1]
   const i = order[2]
   const j = order[3]
+  const seed1 = state.seeds[s][g][i]
+  const seed2 = state.seeds[s][g][j]
+  // if (seed1 < 0 || seed2 < 0) return
   if ($event && (s !== state.edit.current[0] || g !== state.edit.current[1] || i !== state.edit.current[2] || j !== state.edit.current[3])) {
-    console.log('s=' + s, 'g=' + g, 'g=' + i, 'j=' + j)
+    console.log('s=' + s, 'g=' + g, 'i=' + i, 'j=' + j)
     // console.log('seeds:', state.seeds[s][g][g], state.seeds[s][g][j], 'status:', state.scores[s][g][g][j])
     state.edit.current = order
     state.edit.type = 'group'
-    state.edit.over = [state.seeds[s][g][i], state.seeds[s][g][j]]
+    state.edit.over = [...order]
   }
-  state.edit.over.forEach((seed) => {
-    document.querySelectorAll('#player' + seed + ':not(.empty)').forEach((element) => element.classList.add('over'))
-  })
-  document.querySelectorAll('#group-' + state.seeds[s][g][i] + '-' + state.seeds[s][g][j] + ':not(.empty)').forEach((element) => element.classList.add('group-cell-over'))
-  document.querySelectorAll('#group-' + state.seeds[s][g][j] + '-' + state.seeds[s][g][i] + ':not(.empty)').forEach((element) => element.classList.add('group-cell-over'))
+  document.querySelectorAll('#player' + seed1 + ':not(.empty)').forEach((element) => element.classList.add('over'))
+  document.querySelectorAll('#player' + seed2 + ':not(.empty)').forEach((element) => element.classList.add('over'))
+  document.querySelectorAll('#group-' + s + '-' + g + '-' + i + '-' + j + ':not(.empty)').forEach((element) => element.classList.add('group-cell-over'))
+  document.querySelectorAll('#group-' + s + '-' + g + '-' + j + '-' + i + ':not(.empty)').forEach((element) => element.classList.add('group-cell-over'))
   // document.querySelectorAll('#player' + state.seeds[s][g][g] + ':not(.empty)').forEach((element) => element.classList.add('over'))
   // document.querySelectorAll('#player' + state.seeds[s][g][j] + ':not(.empty)').forEach((element) => element.classList.add('over'))
 }
@@ -906,12 +934,17 @@ function outGroupCell (state, { order, $event }) {
   if ($event && state.edit.current) {
     state.edit.next = false
   }
-  if (state.edit.over && state.edit.over.length === 2) {
-    state.edit.over.forEach((seed) => {
-      document.querySelectorAll('#player' + seed + ':not(.empty)').forEach((element) => element.classList.remove('over'))
-    })
-    document.querySelectorAll('#group-' + state.edit.over[0] + '-' + state.edit.over[1] + ':not(.empty)').forEach((element) => element.classList.remove('group-cell-over'))
-    document.querySelectorAll('#group-' + state.edit.over[1] + '-' + state.edit.over[0] + ':not(.empty)').forEach((element) => element.classList.remove('group-cell-over'))
+  if (state.edit.over && state.edit.over.length === 4) {
+    const s = state.edit.over[0]
+    const g = state.edit.over[1]
+    const i = state.edit.over[2]
+    const j = state.edit.over[3]
+    const seed1 = state.seeds[s][g][i]
+    const seed2 = state.seeds[s][g][j]
+    document.querySelectorAll('#player' + seed1 + ':not(.empty)').forEach((element) => element.classList.remove('over'))
+    document.querySelectorAll('#player' + seed2 + ':not(.empty)').forEach((element) => element.classList.remove('over'))
+    document.querySelectorAll('#group-' + s + '-' + g + '-' + i + '-' + j + ':not(.empty)').forEach((element) => element.classList.remove('group-cell-over'))
+    document.querySelectorAll('#group-' + s + '-' + g + '-' + j + '-' + i + ':not(.empty)').forEach((element) => element.classList.remove('group-cell-over'))
   }
   // document.querySelectorAll('#player' + state.matches[state.edit.current[0]][state.edit.current[1]].seeds[state.edit.current[2]]).forEach((element) => element.classList.remove('over'))
 }
@@ -948,7 +981,7 @@ function setGroupScore (state, order, score, opponent = false) {
   // state.scores[s][g][g][j] = score
   Vue.set(state.scores[s][g][i][j], opponent ? 1 : 0, score)
   Vue.set(state.scores[s][g][j][i], opponent ? 0 : 1, score)
-  calcGroupPlaces(state, state.seeds[s][g], state.scores[s][g], state.places[s][g])
+  calcGroupPlaces(state, state.seeds[s][g], state.scores[s][g], state.places[s][g], s, g)
   // Vue.set(state.scores[s][g][j], g, [...state.scores[s][g][j][g]])
   // console.log(JSON.stringify(state.scores).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
   // console.log(JSON.stringify(state.seeds).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))

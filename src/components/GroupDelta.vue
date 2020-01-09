@@ -2,7 +2,7 @@
   <g
     @mouseover="onOver($event)"
     @mouseout="onOut($event)">
-    <rect class="group-delta-plus" x="0" y="5" :width="delta.width" height="20" v-if="delta.value > 0"></rect>
+    <rect class="group-delta-plus" x="0" y="5" :width="delta.width" height="20" v-if="delta.value >= 0"></rect>
     <rect class="group-delta-minus" x="0" y="5" :width="delta.width" height="20" v-else></rect>
     <text :x="delta.width / 2" y="19" class="group-delta-text" text-anchor="middle">{{delta.text}}</text>
   </g>

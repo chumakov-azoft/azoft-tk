@@ -25,8 +25,8 @@ export default {
   }),
   computed: {
     version: function () { return this.$store.state.version },
-    result: function () { return this.version && this.$store.state.scores[this.order[0]][this.order[1]][this.order[2]][this.order[3]] },
-    resultText: function () { return this.result[0] + ':' + this.result[1] },
+    result: function () { return this.$store.state.scores[this.order[0]][this.order[1]][this.order[2]][this.order[3]] },
+    resultText: function () { return this.result[0] === 'Tex' || this.result[1] === 'Tex' ? 'Tex' : this.result[0] + ':' + this.result[1] },
     diagonal: function () { return this.order[2] === this.order[3] },
     empty: function () { return this.status === '' },
     started: function () { return this.status && this.status.indexOf('ready') === -1 },
@@ -34,7 +34,7 @@ export default {
     finished: function () { return (this.status === 'win1' || this.status === 'win2') },
     plus: function () { return this.status === 'win1' },
     minus: function () { return this.status === 'win2' },
-    status: function () { return this.diagonal ? '' : this.result[2] }
+    status: function () { return this.diagonal ? '' : this.result ? this.result[2] : '' }
   },
   methods: {
     onOver ($event) {

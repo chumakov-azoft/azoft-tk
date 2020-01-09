@@ -28,7 +28,7 @@ export default {
   },
   data: () => ({
     deltasWidth: 40,
-    rowWidth: 450
+    rowWidth: 750
   }),
   computed: {
     nameWidth: function () { return this.$store.state.settings.nameWidth },

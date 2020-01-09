@@ -1,23 +1,23 @@
 <template>
-  <g>
+  <g :class="placeClass">
     <rect class="group-player-shade" :width="backWidth" height="30" v-if="backVisible"></rect>
-    <rect class="group-player" :width="nameWidth + 70" height="30"></rect>
-    <rect class="group-player-end" :x="tableAndNameWidth" :width="Math.max(1, backWidth - tableAndNameWidth)" height="30"></rect>
-    <image :href="logo" x="42.5" y="6.5" height="18" width="18" v-if="showLogo"></image>
+    <rect v-if="seed >= 0" class="group-player" :width="nameWidth + 70" height="30"></rect>
+    <rect v-if="seed >= 0" class="group-player-end" :x="tableAndNameWidth" :width="Math.max(1, backWidth - tableAndNameWidth)" height="30"></rect>
+    <image v-if="seed >= 0 && showLogo" :href="logo" x="42.5" y="6.5" height="18" width="18"></image>
     <text x="12" y="19" text-anchor="middle" class="group-player-order">{{order[2] + 1}}</text>
-    <text x="36" y="19" text-anchor="middle" class="group-player-rating">{{rating}}</text>
-    <text :x="showLogo ? 75 : 55" y="21" :textLength="stretchNames ? nameWidth : 0" class="group-player-name">{{name}}</text>
+    <text v-if="seed >= 0" x="36" y="19" text-anchor="middle" class="group-player-rating">{{rating}}</text>
+    <text v-if="seed >= 0" :x="showLogo ? 75 : 55" y="21" :textLength="stretchNames ? nameWidth : 0" class="group-player-name">{{name}}</text>
     <g :transform="`translate(${nameWidth + 70} 0)`">
-      <group-cell v-for="seed2 in seeds" :key="'groupCell' + seed2" :id="'group-' + seed + '-' + seed2" class="group-cell"
-                  :transform="`translate(${seed2 * 30} 0)`"
-                  :order="[...order, seed2]"
+      <group-cell v-for="(seed2, count2) in seeds" :key="'groupCell' + count2" :id="'group-' + order[0] + '-' + order[1] + '-' + order[2] + '-' + count2" class="group-cell"
+                  :transform="`translate(${count2 * 30} 0)`"
+                  :order="[...order, count2]"
       ></group-cell>
     </g>
-    <text :x="tableAndNameWidth + 35" y="21" width="45" height="21" text-anchor="middle" class="group-player-score">{{total}}</text>
-    <g :transform="`translate(${tableAndNameWidth + 50} 0)`">
-      <group-delta v-for="(delta, count) in deltas" :key="'groupDelta' + count" :id="'group-' + seed + '-' + delta.seed2" class="group-delta"
+    <text v-if="seed >= 0" :x="tableAndNameWidth + 35" y="21" width="45" height="21" text-anchor="middle" class="group-player-score">{{total}}</text>
+    <g v-if="seed >= 0" :transform="`translate(${tableAndNameWidth + 50} 0)`">
+      <group-delta v-for="(delta, count) in deltas" :key="'groupDelta' + count" :id="'group-' + order[0] + '-' + order[1] + '-' + order[2] + '-' + count" class="group-delta"
                    :transform="`translate(${delta.x + 8} 0)`"
-                   :order="[...order, delta.seed2]"
+                   :order="[...order, count]"
                    :delta = delta
       ></group-delta>
     </g>
@@ -59,7 +59,7 @@ export default {
   computed: {
     version: function () { return this.$store.state.version },
     result: function () { return this.$store.state.scores[this.order[0]][this.order[1]][this.order[2]] },
-    seed: function () { return this.order[2] },
+    seed: function () { return this.seeds[this.order[2]] },
     rating: function () { return this.$store.state.players[this.seed].rating },
     logo: function () { return this.$store.state.players[this.seed].logo },
     name: function () { return this.$store.state.players[this.seed].short },
@@ -67,9 +67,9 @@ export default {
     tableWidth: function () { return this.seeds.length * 30 },
     tableAndNameWidth: function () { return this.tableWidth + this.nameWidth + 60 },
     total: function () {
-      return this.result.reduce((acc, item) => (item ? (item[2] === 'win1' ? acc + 2 : item[2] === 'win2' ? acc + 1 : acc) : acc), 0)
+      return this.result.reduce((acc, item) => (item ? (item[2] === 'win1' ? acc + 2 : item[2] === 'win2' && item[0] !== 'Tex' ? acc + 1 : acc) : acc), 0)
     },
-    deltas: function () {
+    deltas () {
       let sum = 0
       const e = this.result.map((item, index) => {
         if (item && (item[2] === 'win1' || item[2] === 'win2')) {
@@ -91,10 +91,24 @@ export default {
       this.$emit('changeDeltasWidth', sum)
       return e
     },
-    showLogo: function () { return this.$store.state.settings.showLogo && this.logo },
-    stretchNames: function () { return this.$store.state.settings.stretchNames },
-    place: function () { return this.$store.state.places[this.order[0]][this.order[1]][this.order[2]] || [] },
-    chevron: function () { return this.status === '' ? this.$store.state.settings.defaultChevronColor : this.$store.state.colors[this.seed] }
+    showLogo () { return this.$store.state.settings.showLogo && this.logo },
+    stretchNames () { return this.$store.state.settings.stretchNames },
+    place () { return this.$store.state.places[this.order[0]][this.order[1]][this.order[2]] || [] },
+    placeClass () {
+      if (this.place.length === 1) {
+        const p = this.place[0].toString()
+        const arr = p.split('..')
+        if (arr[0] === '1') {
+          return 'place--1'
+        } else if (arr[0] === '2') {
+          return 'place--2'
+        } else if (arr[0] === '3') {
+          return 'place--3'
+        }
+      }
+      return null
+    },
+    chevron () { return this.status === '' ? this.$store.state.settings.defaultChevronColor : this.$store.state.colors[this.seed] }
   },
   methods: {
     getRatingDelta (r1, r2, [s1, s2]) {
