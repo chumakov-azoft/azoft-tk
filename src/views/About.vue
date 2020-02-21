@@ -5,7 +5,7 @@
         <img src="../assets/blue-yellow.png" style="width: 60%; max-width: 400px;"/>
         <h3 class="display-3 ma-2">Azoft Tournaments</h3>
         <h4 class="subheading">(открытые турниры Azoft по настольному теннису)</h4>
-        <h5 class="heading mt-6">Турнир пар 1.0 запущен!</h5>
+        <h3 class="heading mt-6">Турнир Azoft Open 2.0 запущен!</h3>
         <!--<ul style="width: 90%; max-width: 500px;" class="mt-6 text-justify">
           <li>Играем в настольный теннис, стол в подвале здания Кутателадзе 4Г, комната №20. Партии до 11 очков, матч до 3 очков (т.е. результат 3:2, 3:1 или 3:0).
             За ходом турнира можно следить в нашем публичном Телеграм чате <a href="tg://t.me/joinchat/FMaTykiB1RIoc7PMD5RTkQ"><strong>azoft tournaments</strong></a></li>
@@ -21,7 +21,7 @@
         </ul>-->
       </v-layout>
       <v-layout align-center column justify-center>
-        <v-btn to="/events/pairs-1" dark large color="#f2c008" class="mt-6">Смотреть таблицу</v-btn>
+        <v-btn to="/events/open-2" dark large color="#f2c008" class="mt-6">Смотреть таблицу</v-btn>
         <v-btn @click="goTg" dark large color="#2483c5" class="my-6">Подключиться к чату</v-btn>
         <v-dialog v-model="telegram" max-width="390">
           <v-card>
@@ -37,8 +37,13 @@
           </v-card>
         </v-dialog>
         <v-flex row wrap text-xs-center class="mb-5">
-          В январе будет личный турнир 2.0. Тренируйтесь! ;)
+          Не попали в этот турнир? Не пропустите следующий турнир! ;)
         </v-flex>
+        <h4 class="display-1">Прошедшие турниры</h4>
+        <v-layout align-center column justify-center class="ma-4">
+          <v-btn to="/events/open-1" dark small color="#f2c008" class="ma-4">Открытый турнир 1.0</v-btn>
+          <v-btn to="/events/open-1" dark small color="#f2c008" class="ma-4">Турнир пар 1.0</v-btn>
+        </v-layout>
       </v-layout>
     </section>
   </div>

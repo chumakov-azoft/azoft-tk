@@ -1,0 +1,38 @@
+{
+  "medias": [
+    ["/images/YouTube.svg", 2350, -77, 85, "https://youtu.be/MJFES7Q0-ts", "Константин - Руслан, реванш", "konstantin-ruslan"],
+    ["/images/YouTube.svg", 868, 230, 85, "https://youtu.be/R_CS21QP9pI", "Женя - Катя, борьба за лидерство", "jenya-katya"]
+  ],
+  "titles": [
+    ["Четвертьфинал", 805, -95, "font-size:12px;fill:#cccccc", "start"],
+    ["Четвертьфинал", 805, -15, "font-size:12px;fill:#cccccc"],
+    ["Четвертьфинал", 805, 65, "font-size:12px;fill:#cccccc"],
+    ["Четвертьфинал", 805, 145, "font-size:12px;fill:#cccccc"],
+    ["Полуфинал", 1185, -245, "font-size:12px;fill:#cccccc"],
+    ["Полуфинал", 1185, -165, "font-size:12px;fill:#cccccc"],
+    ["Финал", 1905, -245, "font-size:12px;fill:#cccccc"],
+    ["Финал 2", 1905, -165, "font-size:12px;fill:#cccccc"],
+    ["Грандфинал", 2285, -245, "font-size:12px;fill:#cccccc"],
+    ["Игра за 3-4 место", 2285, -165, "font-size:12px;fill:#cccccc"],
+    ["Игра за 5-6 место", 1905, 185, "font-size:12px;fill:#cccccc"],
+    ["Игра за 7-8 место", 1905, 265, "font-size:12px;fill:#cccccc"],
+    ["Первый финал vs Второй финал", 2285, 305, "font-size:12px;fill:#cccccc"],
+    ["Первый финал vs Второй финал", 2285, 385, "font-size:12px;fill:#cccccc"],
+    ["Четвертьфинал", 1185, 465, "font-size:12px;fill:#cccccc"],
+    ["Четвертьфинал", 1185, 545, "font-size:12px;fill:#cccccc"],
+    ["Четвертьфинал", 1185, 1015, "font-size:12px;fill:#cccccc"],
+    ["Четвертьфинал", 1185, 1095, "font-size:12px;fill:#cccccc"],
+    ["Полуфинал", 1525, 465, "font-size:12px;fill:#cccccc"],
+    ["Полуфинал", 1525, 545, "font-size:12px;fill:#cccccc"],
+    ["Финал", 1905, 415, "font-size:12px;fill:#cccccc"],
+    ["Игра за 3-4 место", 2665, 605, "font-size:12px;fill:#cccccc"],
+    ["Игра за 5-6 место", 2665, 685, "font-size:12px;fill:#cccccc"],
+    ["Игра за 7-8 место", 2285, 855, "font-size:12px;fill:#cccccc"],
+    ["Игра за 9-10 место", 2285, 1015, "font-size:12px;fill:#cccccc"],
+    ["Игра за 11-12 место", 2285, 1095, "font-size:12px;fill:#cccccc"]
+  ],
+  "texts": [
+    ["Финал 1", 1040, 170, "font-size:310px;fill:#cccccc;opacity:0.2"],
+    ["Финал 2", 1040, 840, "font-size:310px;fill:#cccccc;opacity:0.2"]
+  ]
+}

@@ -1,6 +1,6 @@
 workbox.core.setCacheNameDetails({ prefix: 'tt3' })
 // Change this value every time before you build
-const LATEST_VERSION = 'v0.1.16'
+const LATEST_VERSION = 'v0.1.32'
 self.addEventListener('activate', (event) => {
   console.log(`%c ${LATEST_VERSION} `, 'background: #ddd; color: #0000ff')
   if (caches) {

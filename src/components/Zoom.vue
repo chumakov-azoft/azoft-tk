@@ -29,29 +29,38 @@
 
       <g>
 
-        <g style="fill:none;stroke-width:4;stroke-linecap:butt;">
-          <path v-for="(curv, index) in curves" :key="'curv' + index"
-                :stroke="curv.color"
-                :stroke-dasharray="curv.dash"
-                :d="curv.d"
-          ></path>
+        <texts :texts="$store.state.texts"></texts>
+
+        <g v-for="(curve, count) in curves2" :key="'curves2' + '-' + count" :id="'curves2' + '-' + count">
+          <g style="fill:none;stroke-width:4;stroke-linecap:butt;">
+            <path v-for="(curv, index) in (curves2[count] || []).filter(Boolean)" :key="'curv2' + count + '.' + index" :id="'curv2.' + count + '.' + index"
+                  :stroke="curv.color"
+                  :stroke-dasharray="curv.dash"
+                  :d="curv.d"
+            ></path>
+          </g>
         </g>
 
-        <g v-for="(stage, s) in stages" :key="'stage' + '-' + s" :id="'stage' + s">
+        <g v-for="(stage, s) in stages" :key="'stage' + '-' + s" :id="'stage' + s" :transform="`translate(${stagesPosition[s][0]} ${stagesPosition[s][1]})`">
+          <g style="fill:none;stroke-width:4;stroke-linecap:butt;">
+            <path v-for="(curv, index) in (curves[s] || []).filter(Boolean)" :key="'curv' + s + '.' + index" :id="'curv' + s + '.' + index"
+                  :stroke="curv.color"
+                  :stroke-dasharray="curv.dash"
+                  :d="curv.d"
+            ></path>
+          </g>
+
           <g v-for="(games, index) in matches[s]" :key="'game' + index">
             <match v-for="(game, count) in (games || []).filter(Boolean)" :key="'match' + s + '.' + index + '.' + count"
+                   :index="count"
                    :seeds="game.seeds"
                    :order="game.order"
-                   :names="game.names"
-                   :logos="game.logos"
                    :position="game.position"
-                   :ratings="game.ratings"
-                   :scores="game.scores"
-                   :status="game.status"
             ></match>
           </g>
-          <g v-for="(place, count) in (places[s] || []).filter(Boolean)" :key="'place' + s + '.' + count">
-            <place v-if="place.seed"
+
+          <!--<g v-for="(place, count) in (places[s] || []).filter(Boolean)" :key="'place' + s + '.' + count">
+            <place v-if="place.place"
               :seed="place.seed"
               :order="place.order"
               :position="place.position"
@@ -59,12 +68,33 @@
               :place="place.place"
               :delta="place.delta"
             ></place>
-          </g>
+          </g>-->
+
           <groupRow
             :s = s
             :position="[0,0]"
           >
           </groupRow>
+
+        </g>
+
+        <texts :texts="$store.state.titles"></texts>
+
+        <g style="filter:url(#dropshadow)" :id="'players-' + 0" v-if="showPlayers">
+          <players
+            :index="0"
+            :order="[0]"
+            :position="[playersPosition[0], playersPosition[1]]"
+            :playersWidth="350"
+          ></players>
+        </g>
+
+        <g :id="'places-' + 0" v-if="showPlaces">
+          <places v-for="(place, count) in placesArr" :key="'places' + count"
+            :index="count"
+            :position="[placesPosition[count][0] + stagesPosition[stages.length - 1][0], placesPosition[count][1] + stagesPosition[stages.length - 1][1]]"
+            :placesWidth="350"
+          ></places>
         </g>
 
         <medias></medias>
@@ -80,11 +110,13 @@ import Hammer from 'hammerjs'
 import SvgPanZoom from 'vue-svg-pan-zoom'
 import draggable from 'vuedraggable'
 import Match from './Match.vue'
-import Place from './Place.vue'
+import Places from './Places.vue'
 import Medias from './Medias.vue'
 import GroupRow from './GroupRow'
+import Players from './Players'
+import Texts from './Texts'
 export default {
-  components: { SvgPanZoom, GroupRow, Match, Place, Medias },
+  components: { SvgPanZoom, Players, GroupRow, Match, Places, Medias, Texts },
   data: () => ({
     visible: false,
     hammer: null,
@@ -154,11 +186,20 @@ export default {
     }
   }),
   computed: {
+    showPlayers () { return this.$store.state.settings.showPlayers },
+    showPlaces () { return this.$store.state.settings.showPlaces },
+    placesArr () { return new Array(this.$store.state.settings.finalsNum).fill(0) },
+    placesOffset () { return this.$store.state.settings.finalsSizes },
+    stagesPosition () { return this.$store.state.settings.stagesPosition },
+    playersPosition () { return this.$store.state.settings.playersPosition },
+    placesPosition () { return this.$store.state.settings.placesPosition },
     matchWidth () { return this.$store.state.settings.matchWidth },
-    stages () { return this.$store.state.stages },
+    players () { return this.$store.state.players },
+    stages () { return this.$store.state.info.stages },
     matches () { return this.$store.state.matches },
     places () { return this.$store.state.places },
-    curves () { return this.$store.state.curves }
+    curves () { return this.$store.state.curves },
+    curves2 () { return this.$store.state.curves2 }
   },
   methods: {
     registerSvgPanZoom (zoomer) {
@@ -195,5 +236,13 @@ export default {
   height: 100vh;
   position: fixed;
   overflow: hidden;
+}
+.group {
+  fill: #ffffff;
+}
+.group--title {
+  font-size: 18px;
+  fill: rgb(204, 204, 204);
+  opacity: 0.8;
 }
 </style>

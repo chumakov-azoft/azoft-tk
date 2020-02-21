@@ -1,51 +1,7 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
   <v-content>
 
-    <v-speed-dial v-if="$store.state.settings.role === 'admin'" style="position:absolute;z-index:1" class="menu"
-                  v-model="fab"
-                  elevation="10"
-                  top
-                  right
-                  direction="left"
-                  transition="slide-y-reverse-transition"
-    >
-      <template v-slot:activator>
-        <v-btn
-          fab
-          small
-          elevation="5"
-        >
-          <v-icon v-if="fab">mdi-close</v-icon>
-          <v-icon v-else>mdi-menu</v-icon>
-        </v-btn>
-      </template>
-      <v-btn
-        fab
-        small
-        elevation="5"
-        @click.stop="onClick"
-      >
-        <v-icon>mdi-pencil</v-icon>
-      </v-btn>
-      <v-btn
-        fab
-        small
-        elevation="5"
-        @click.stop="onClick"
-      >
-        <v-icon>mdi-plus</v-icon>
-      </v-btn>
-      <v-btn
-        fab
-        small
-        elevation="5"
-        @click.stop="onClick"
-      >
-        <v-icon>mdi-delete</v-icon>
-      </v-btn>
-    </v-speed-dial>
-
-    <silentbox-group>
+   <silentbox-group>
       <silentbox-item v-for="(media, index) in $store.state.medias" :key="'thumb' + index" :id="'thumb--' + media[6]" class="d-none"
         :src="media[4][0] === '/' ? $store.state.settings.base + media[4] : media[4]" :mid="media[6]"
         :description="media.length ? media[5] : ''" :autoplay="false" :hide-controls="true">
@@ -54,16 +10,20 @@
 
     <Zoom @clickMedia="onClick"/>
 
+    <add-player></add-player>
+
   </v-content>
 </template>
 
 <script>
 import Zoom from '../components/Zoom'
+import AddPlayer from '../components/dialogs/AddPlayer'
 
 export default {
   name: 'home',
   components: {
-    Zoom
+    Zoom,
+    AddPlayer
   },
   props: {
     section: {
@@ -74,6 +34,9 @@ export default {
   data: () => ({
     fab: false
   }),
+  computed: {
+    addPlayerDialog: function () { return this.$store.state.edit.addPlayerDialog }
+  },
   methods: {
     onClick (id) {
       const thumb = document.querySelector('#thumb--' + id)
@@ -85,10 +48,13 @@ export default {
   mounted () {
     this.$store.commit('initialize', this.section)
     document.onkeydown = (e) => {
+      if (this.addPlayerDialog) return
       e = e || window.event
       console.log(e.code)
       if (e.code.indexOf('Digit') === 0 && e.key < 10 && e.key >= 0) {
         this.$store.state.edit.type === 'group' ? this.$store.dispatch('setGroupResult', +e.key) : this.$store.dispatch('setMatchResult', +e.key)
+      } else if (e.code === 'KeyR') {
+        this.$store.state.edit.type === 'group' ? this.$store.dispatch('setGroupReady') : this.$store.dispatch('setMatchReady')
       } else if (e.code === 'KeyT') {
         this.$store.state.edit.type === 'group' ? this.$store.dispatch('setGroupResult', 'Tex') : this.$store.dispatch('setMatchResult', 'Tex')
       } else if (e.code === 'Space') {
@@ -108,6 +74,10 @@ export default {
       } else if (e.code === 'KeyC' && e.altKey) {
         this.$store.dispatch('clearStorage')
       } else if (e.code === 'KeyA' && e.altKey) {
+        this.$store.dispatch('switchRole')
+      } else if (e.code === 'KeyA') {
+        this.$store.state.edit.addPlayerDialog = true
+      } else if (e.code === 'KeyZ' && e.ctrlKey && e.altKey) {
         this.$store.dispatch('restoreFromStorage')
       } else if ((e.code === 'KeyS') && e.altKey && e.ctrlKey) {
         this.$store.dispatch('saveAllResults')

@@ -5,7 +5,7 @@
     ["/images/YouTube.svg", 1490, 340, 45, "https://youtu.be/OifoP6w1nC4", "Денис - Константин, первая партия", "denis-constantin"],
     ["/images/YouTube.svg", 850, 490, 45, "https://youtu.be/SW_bboqhAR8", "Женя - Константин, битва титанов", "zhenya-const"],
     ["/images/YouTube.svg", 1490, 960, 45, "https://youtu.be/z7nEzBJzAwo", "Денис - Настя, война до победного конца...", "denis-nastya"],
-    ["/photos/3rd.png", 2522, 421, 45, "/photos/3rd.png", "Женя получает свой приз за 3-е место", "3rd"],
-    ["/photos/1st.png", 2522, 350, 45, "/photos/1st.png", "Денис и его кубок за 1-е место", "1st"]
+    ["/photos/1st.png", 2612, 1030, 255, "/photos/1st.png", "Денис и его кубок за 1-е место", "1st"],
+    ["/photos/3rd.png", 2882, 1030, 283, "/photos/3rd.png", "Женя получает свой приз за 3-е место", "3rd"]
   ]
 }

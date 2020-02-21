@@ -1,23 +1,15 @@
 <template>
-  <g :class="placeClass">
+  <g :class="placeClass" @click="editPlayer">
     <rect class="group-player-shade" :width="backWidth" height="30" v-if="backVisible"></rect>
-    <rect v-if="seed >= 0" class="group-player" :width="nameWidth + 70" height="30"></rect>
-    <rect v-if="seed >= 0" class="group-player-end" :x="tableAndNameWidth" :width="Math.max(1, backWidth - tableAndNameWidth)" height="30"></rect>
-    <text x="12" y="19" text-anchor="middle" class="group-player-order">{{order[2] + 1}}</text>
+    <rect v-if="seed >= 0" class="group-player" :width="backWidth" height="30"></rect>
+    <text x="12" y="19" text-anchor="middle" class="group-player-order">{{index + 1}}</text>
     <text v-if="seed >= 0" x="36" y="19" text-anchor="middle" class="group-player-rating">{{rating}}</text>
     <image v-if="seed >= 0 && showLogo" :href="logo" x="57" y="6.5" height="18" width="18"></image>
     <text v-if="seed >= 0" :x="showLogo ? 80 : 57" y="21" :textLength="stretchNames ? nameWidth : null" class="group-player-name">{{name}}</text>
-    <g :transform="`translate(${nameWidth + 70} 0)`">
-      <group-cell v-for="(seed2, count2) in seeds" :key="'groupCell' + count2" :id="'group-' + order[0] + '-' + order[1] + '-' + order[2] + '-' + count2" class="group-cell"
-                  :transform="`translate(${count2 * 30} 0)`"
-                  :order="[...order, count2]"
-      ></group-cell>
-    </g>
-    <text v-if="seed >= 0" :x="tableAndNameWidth + 35" y="21" width="45" height="21" text-anchor="middle" class="group-player-score">{{total}}</text>
-    <g v-if="seed >= 0" :transform="`translate(${tableAndNameWidth + 50} 0)`">
-      <group-delta v-for="(delta, count) in deltas" :key="'groupDelta' + count" :id="'group-' + order[0] + '-' + order[1] + '-' + order[2] + '-' + count" class="group-delta"
+    <g v-if="seed >= 0" :transform="`translate(${nameWidth + 50} 0)`">
+      <group-delta v-for="(delta, count) in deltas" :key="'groupDelta' + count" class="group-delta"
                    :transform="`translate(${delta.x + 8} 0)`"
-                   :order="[...order, delta.order[2]]"
+                   :order="[...order, delta.index]"
                    :delta = delta
       ></group-delta>
     </g>
@@ -27,11 +19,11 @@
 </template>
 
 <script>
-import GroupCell from './GroupCell'
 import GroupDelta from './GroupDelta'
+
 export default {
-  name: 'GroupLine',
-  components: { GroupCell, GroupDelta },
+  name: 'Player',
+  components: { GroupDelta },
   props: {
     index: {
       type: Number,
@@ -41,55 +33,31 @@ export default {
       type: Array,
       default: () => []
     },
-    seeds: {
-      type: Array,
-      default: () => []
-    },
-    backWidth: {
-      type: Number,
-      default: 300
-    },
     backVisible: {
       type: Boolean,
       default: true
     },
-    deltasWidth: {
+    backWidth: {
       type: Number,
-      default: 0
+      default: 300
     }
   },
-  watch: {
-    deltas: {
-      immediate: true,
-      handler (value) {
-        const last = value[value.length - 1]
-        const width = last.x + last.width + 5
-        if (width > this.deltasWidth) {
-          this.$emit('changeDeltasWidth', width)
-        }
-      }
-    }
-  },
+  data: () => ({
+    defaultPlayer: { short: 'Записывайтесь!', rating: 0, logo: '/img/PlusGreen.svg', click: true }
+  }),
   computed: {
-    defaultPlayer: function () { return { short: 'Записывайтесь!', rating: 0, logoUrl: '/img/PlusGreen.svg', click: true } },
-    version: function () { return this.$store.state.version },
-    players: function () { return this.$store.state.players },
-    player: function () { return this.seed === -1 || this.seed >= this.players.length ? this.defaultPlayer : this.players[this.seed] },
-    seed: function () { return this.seeds[this.order[2]] },
-    rating: function () { return this.player.rating },
-    logo: function () { return this.player.logoUrl },
-    name: function () { return this.player.short },
-    nameWidth: function () { return this.$store.state.settings.nameWidth },
-    tableWidth: function () { return this.seeds.length * 30 },
-    tableAndNameWidth: function () { return this.tableWidth + this.nameWidth + 60 },
-    result: function () { return this.$store.state.scores[this.order[0]][this.order[1]][this.order[2]] },
-    total: function () {
-      return this.result.reduce((acc, item) => (item ? (item[2] === 'win1' ? acc + 2 : item[2] === 'win2' && item[0] !== 'Tex' ? acc + 1 : acc) : acc), 0)
-    },
+    players () { return this.$store.state.players },
+    player () { return this.seed === -1 || this.seed >= this.players.length ? this.defaultPlayer : this.players[this.seed] },
+    seed () { return this.index },
+    rating () { return this.player.rating },
+    logo () { return this.player.logoUrl },
+    name () { return this.player.short2 },
+    nameWidth () { return this.$store.state.settings.nameWidth },
+    isAdmin () { return this.$store.state.settings.role === 'admin' },
+    showLogo () { return this.$store.state.settings.showLogo && this.logo },
+    stretchNames () { return this.$store.state.settings.stretchNames },
+    result () { return [] },
     deltas () {
-      return this.$store.state.deltas[this.order[0]][this.seed]
-    },
-    deltasOld () {
       let sum = 0
       const e = this.result.map((item, index) => {
         if (item && (item[2] === 'win1' || item[2] === 'win2')) {
@@ -111,9 +79,7 @@ export default {
       this.$emit('changeDeltasWidth', sum)
       return e
     },
-    showLogo () { return this.$store.state.settings.showLogo && this.logo },
-    stretchNames () { return this.$store.state.settings.stretchNames },
-    place () { return this.$store.state.places[this.order[0]][this.order[1]][this.order[2]] || [] },
+    place () { return [] },
     placeClass () {
       if (this.place.length === 1) {
         const p = this.place[0].toString()
@@ -131,6 +97,12 @@ export default {
     chevron () { return this.status === '' ? this.$store.state.settings.defaultChevronColor : this.$store.state.colors[this.seed] }
   },
   methods: {
+    editPlayer () {
+      if (this.isAdmin) {
+        this.$store.state.edit.addPlayerDialog = true
+        this.$store.state.edit.addPlayerSeed = this.seed
+      }
+    },
     onOver ($event) {
       if (!this.diagonal) this.$store.commit('overGroupCell', { order: this.order, $event })
     },

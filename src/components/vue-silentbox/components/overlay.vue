@@ -105,7 +105,7 @@ export default {
       return ''
     },
     scoreArray () {
-      if (!this.scoreTime) {
+      if (!this.scoreTime || !this.score || !this.scoreTime.length || !this.score.length) {
         return [0, 0, 0, 0, 0]
       } else if (this.tubePositionIndex === -1) {
         return this.score[this.score.length - 1].split(' ')
@@ -254,6 +254,7 @@ export default {
         } else if ((e.code === 'KeyT') && e.altKey) {
           let current = 0
           let n = 0
+          let all = []
           for (let i = 0; i < this.score.length; i++) {
             let score = this.score[i].split(' ')
             if (score[2] === '0' && score[3] === '0' && i !== 0) {
@@ -261,10 +262,12 @@ export default {
               let time = new Date(this.scoreTime[i] * 1000).toISOString().substr(14, 5)
               let timeEnd = new Date(this.scoreTime[i] * 1000 - current).toISOString().substr(14, 5)
               let timeStart = new Date(current).toISOString().substr(14, 5)
+              all.push('"' + timeStart + '"')
               console.log(n, 'starts:', timeStart, 'length:', timeEnd, 'ends:', time)
               current = this.scoreTime[i] * 1000
             }
           }
+          console.log('"audioTime": [' + all.join(',') + ']')
         }
       }
     },

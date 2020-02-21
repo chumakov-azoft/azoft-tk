@@ -25,7 +25,7 @@ export default {
     medias: {
       immediate: true,
       handler (value, old) {
-        console.log('before', old, this.$route.params.media)
+        // console.log('before', old, this.$route.params.media)
         if (this.$route.params.media !== null) {
           setTimeout(() => this.onClick(this.$route.params.media), 500)
         }

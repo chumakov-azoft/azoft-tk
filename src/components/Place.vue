@@ -1,17 +1,16 @@
 <template>
-  <g style="filter:url(#dropshadow)" :class="'place--' + place" :id="'player' + seed"
+  <g :class="'winner place--' + (index + 1)" :id="'player' + seed"
     @mouseout="$store.commit('out', {order, $event})"
     @mouseover="$store.commit('over', {order, $event})">
-    <g :transform="`translate(${position[0]} ${position[1]})`">
-      <polygon points="7,5 7,25 -5,15" class="place"/>
-      <rect class="place" x="5" :width="placeWidth" height="30"></rect>
-      <rect class="place--shade" x="35" :width="placeWidth - 64" height="30"></rect>
-      <rect class="place--plus" :x="placeWidth - 29" :width="34.1" height="30" v-if="delta > 0"></rect>
-      <rect class="place--minus" :x="placeWidth - 29" :width="34.1" height="30" v-if="delta < 0"></rect>
-      <text x="19" y="19" width="45" height="12" text-anchor="middle" class="match--rating">{{rating}}</text>
-      <text x="71" y="20.5" :width="placeWidth - 90" height="21" text-anchor="middle" class="place--name">{{place + ' место'}}</text>
-      <text :x="placeWidth - 13" y="20" width="45" height="21" text-anchor="middle" class="place--delta">{{(delta > 0 ? '+' : '') + delta}}</text>
-    </g>
+      <rect class="group-player-shade" :width="backWidth" height="30" v-if="backVisible"></rect>
+      <rect v-if="seed >= 0" class="group-player" :width="backWidth" height="30"></rect>
+      <rect class="place--plus" :x="placeWidth - 29" :width="44" height="30" v-if="seed >= 0 && delta >= 0"></rect>
+      <rect class="place--minus" :x="placeWidth - 29" :width="44" height="30" v-if="seed >= 0 && delta < 0"></rect>
+      <text x="12" y="19" text-anchor="middle" class="group-player-order">{{index + 1}}</text>
+      <text v-if="seed >= 0" x="36" y="19" text-anchor="middle" class="group-player-rating">{{rating}}</text>
+      <image v-if="seed >= 0 && showLogo" :href="logo" x="57" y="6.5" height="18" width="18"></image>
+      <text v-if="seed >= 0" :x="showLogo ? 80 : 57" y="21" :textLength="stretchNames ? nameWidth : null" class="place--name">{{name}}</text>
+      <text v-if="seed >= 0" :x="placeWidth - 7" y="21" text-anchor="middle" class="place--delta">{{(delta > 0 ? '+' : '') + delta}}</text>
   </g>
 </template>
 
@@ -19,6 +18,10 @@
 export default {
   name: 'Place',
   props: {
+    index: {
+      type: Number,
+      default: 0
+    },
     order: {
       type: Array,
       default: () => []
@@ -27,27 +30,33 @@ export default {
       type: Number,
       default: 0
     },
-    position: {
-      type: Array,
-      default: () => [ 0, 0 ]
+    backVisible: {
+      type: Boolean,
+      default: true
     },
-    rating: {
+    backWidth: {
       type: Number,
-      default: 0
-    },
-    delta: {
-      type: Number,
-      default: 0
-    },
-    place: {
-      type: Number,
-      default: 0
+      default: 300
     }
   },
   data: () => ({
+    defaultPlayer: { short: '', rating: '', logo: '', click: false }
   }),
   computed: {
-    placeWidth: function () { return 140 }
+    players () { return this.$store.state.players },
+    player () { return this.seed === -1 || this.seed >= this.players.length ? this.defaultPlayer : this.players[this.seed] },
+    rating () { return this.deltas[this.deltas.length - 1].rating },
+    deltas () {
+      return this.seed === -1 ? 0 : this.$store.state.deltas[this.order[0]][this.seed]
+    },
+    delta () { return this.deltas ? this.deltas[this.deltas.length - 1].rating - this.player.rating : 0 },
+    logo () { return this.player.logoUrl },
+    name () { return this.player.short2 },
+    nameWidth () { return this.$store.state.settings.nameWidth },
+    isAdmin () { return this.$store.state.settings.role === 'admin' },
+    showLogo () { return this.$store.state.settings.showLogo && this.logo },
+    stretchNames () { return this.$store.state.settings.stretchNames },
+    placeWidth: function () { return 315 }
   }
 }
 </script>
@@ -84,10 +93,9 @@ export default {
   fill: #ff5050;
 }
 .place--name {
-  font-size: 15px;
+  font-size: 16px;
 }
 .place--delta {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 16px;
 }
 </style>

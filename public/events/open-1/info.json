@@ -2,6 +2,7 @@
   "name": "Azoft Open 1.0",
   "stages": ["finals"],
   "showLogo": true,
+  "showPlaces": true,
   "zoom": {
     "x": 20,
     "y": 20,
