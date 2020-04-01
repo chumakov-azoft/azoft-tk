@@ -1,7 +1,8 @@
 {
   "name": "Azoft Pairs 1.0",
   "type": "pairs",
-  "rtype": "2.5",
+  "ratingSum": "other",
+  "ratingSumC": "2.5",
   "showLogo": false,
   "shortType": "onlyName",
   "nameWidth": 130,

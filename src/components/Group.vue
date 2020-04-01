@@ -14,7 +14,7 @@
         <text :x="seeds.length * 30 + nameWidth + 120 + this.deltasWidth / 2" y="22" text-anchor="start" class="match--rating">Дельта</text>
         <text :x="rowWidth - 20" y="22" text-anchor="end" class="match--rating">Место</text>
         <text v-for="(seed, count) in seeds" :key="'groupKey' + count" :x="nameWidth + 97 + 30 * count" y="22" text-anchor="end" class="match--rating">{{count + 1}}</text>
-        <group-line v-for="(seed, count) in seeds" :key="'groupLine' + count" :id="'player' + seed" @changeDeltasWidth="onChangeDeltasWidth"
+        <group-line v-for="(seed, count) in seeds" :key="'groupLine' + count" :id="'player' + seed"
                     :transform="`translate(10 ${count * 30 + 29})`"
                     :index="count"
                     :seeds="seeds"
@@ -67,18 +67,16 @@ export default {
   },
   methods: {
     onChangeDeltasWidth (width) {
-      this.deltasWidth = Math.max(this.deltasWidth, width)
-      this.$emit('changeRowWidth', this.$store.state.settings.nameWidth + 100 + 30 * this.seeds.length + 90 + this.deltasWidth)
     }
   },
   mounted () {
     // console.log(222222, this.seeds.length, this.groupHeight, this.$store.state.groups[this.order[0]][this.order[1]].position[1])
-    if (this.$store.state.groups[this.order[0]].length > this.order[1] + 1) {
-      // console.log(this.groupHeight)
-      this.$store.state.groups[this.order[0]][this.order[1] + 1].position[1] = Math.max(this.$store.state.groups[this.order[0]][this.order[1] + 1].position[1], this.position[1] + this.groupHeight + 45)
-    } else {
-      this.$emit('changeHeight', this.position[1] + this.groupHeight + 15)
-    }
+    // if (this.$store.state.groups[this.order[0]].length > this.order[1] + 1) {
+    //   console.log(4444, this.groupHeight)
+    //   this.$store.state.groups[this.order[0]][this.order[1] + 1].position[1] = Math.max(this.$store.state.groups[this.order[0]][this.order[1] + 1].position[1], this.position[1] + this.groupHeight + 45)
+    // } else {
+    //   this.$emit('changeHeight', this.position[1] + this.groupHeight + 15)
+    // }
   }
 }
 </script>

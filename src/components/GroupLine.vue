@@ -13,11 +13,10 @@
                   :order="[...order, count2]"
       ></group-cell>
     </g>
-    <text v-if="seed >= 0" :x="tableAndNameWidth + 35" y="21" width="45" height="21" text-anchor="middle" class="group-player-score">{{total}}</text>
+    <text v-if="seed >= 0" :x="tableAndNameWidth + 35" y="21" text-anchor="middle" class="group-player-score">{{total}}</text>
     <g v-if="seed >= 0" :transform="`translate(${tableAndNameWidth + 50} 0)`">
-      <group-delta v-for="(delta, count) in deltas" :key="'groupDelta' + count" :id="'group-' + order[0] + '-' + order[1] + '-' + order[2] + '-' + count" class="group-delta"
+      <group-delta v-for="(delta, count) in deltas" :key="'groupDelta' + count" class="group-delta"
                    :transform="`translate(${delta.x + 8} 0)`"
-                   :order="[...order, delta.order[2]]"
                    :delta = delta
       ></group-delta>
     </g>
@@ -58,18 +57,6 @@ export default {
       default: 0
     }
   },
-  watch: {
-    deltas: {
-      immediate: true,
-      handler (value) {
-        const last = value[value.length - 1]
-        const width = last.x + last.width + 5
-        if (width > this.deltasWidth) {
-          this.$emit('changeDeltasWidth', width)
-        }
-      }
-    }
-  },
   computed: {
     defaultPlayer: function () { return { short: 'Записывайтесь!', rating: 0, logoUrl: '/img/PlusGreen.svg', click: true } },
     version: function () { return this.$store.state.version },
@@ -88,28 +75,6 @@ export default {
     },
     deltas () {
       return this.$store.state.deltas[this.order[0]][this.seed]
-    },
-    deltasOld () {
-      let sum = 0
-      const e = this.result.map((item, index) => {
-        if (item && (item[2] === 'win1' || item[2] === 'win2')) {
-          const seed2 = this.seeds[index]
-          const delta2 = this.$store.getters.getRatingDelta(this.player.rating, this.$store.state.players[seed2].rating, [item[0], item[1]])
-          const delta = Math.round(item[2] === 'win1' ? delta2[0] : delta2[1])
-          const deltaS = delta > 0 ? '+' + delta : String(delta)
-          return { value: delta, text: deltaS, width: deltaS.length * 5 + 8, time: item[4], seed2: seed2, index: index }
-        }
-        return null
-      }).filter(Boolean).sort((a, b) => {
-        return a.time - b.time
-      }).map(item => {
-        // console.log(sum)
-        item.x = sum
-        sum += item.width + 4
-        return item
-      })
-      this.$emit('changeDeltasWidth', sum)
-      return e
     },
     showLogo () { return this.$store.state.settings.showLogo && this.logo },
     stretchNames () { return this.$store.state.settings.stretchNames },
@@ -146,13 +111,13 @@ export default {
   fill: #fff663;
 }
 .championsHighlight .place--2 .group-player, .championsHighlight .place--2 .group-player-end {
-  fill: #e8e8e8;
+  fill: #d2d2d2;
 }
 .championsHighlight .place--3 .group-player, .championsHighlight .place--3 .group-player-end {
   fill: #ffcd99;
 }
 .overHighlight .over .group-player {
-  fill: #80ff55;
+  fill: #00f9ff;
 }
 .group-player-name {
   font-size: 16px;

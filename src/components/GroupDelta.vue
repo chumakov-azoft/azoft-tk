@@ -1,5 +1,5 @@
 <template>
-  <g
+  <g :id="'group-' + order[0] + '-' + order[1] + '-' + order[2] + '-' + order[3]"
     @mouseover="onOver($event)"
     @mouseout="onOut($event)">
     <rect class="group-delta-plus" x="0" y="5" :width="delta.width" height="20" v-if="delta.value >= 0"></rect>
@@ -12,10 +12,6 @@
 export default {
   name: 'GroupDelta',
   props: {
-    order: {
-      type: Array,
-      default: () => []
-    },
     delta: {
       type: Object,
       default: () => {}
@@ -24,13 +20,14 @@ export default {
   data: () => ({
   }),
   computed: {
+    order: function () { return this.delta.order }
   },
   methods: {
     onOver ($event) {
-      if (!this.diagonal) this.$store.commit('overGroupCell', { order: this.order, $event })
+      this.delta.isGroup ? this.$store.commit('overGroupCell', { order: this.order, $event }) : this.$store.commit('overMatchCell', { order: this.order, $event })
     },
     onOut ($event) {
-      if (!this.diagonal) this.$store.commit('outGroupCell', { order: this.order, $event })
+      this.delta.isGroup ? this.$store.commit('outGroupCell', { order: this.order, $event }) : this.$store.commit('overMatchCell', { order: this.order, $event })
     }
   }
 }
@@ -51,14 +48,14 @@ export default {
 }
 .group-cell-over {
   .group-delta-empty {
-    fill: #f7f19b;
+    fill: #00f9ff;
   }
   .group-delta-plus {
-    fill: #c5ff55;
+    fill: #00f9ff;
     //fill: rgba(128, 255, 85, 0.4)
   }
   .group-delta-minus {
-    fill: #ff9950;
+    fill: #00f9ff;
     // fill: rgba(255, 80, 80, 0.4)
   }
 }

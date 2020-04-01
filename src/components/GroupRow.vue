@@ -28,21 +28,15 @@ export default {
     }
   },
   data: () => ({
-    rowWidth: 440,
-    rowHeight: 640
   }),
   computed: {
-    nameWidth: function () { return this.$store.state.settings.nameWidth },
+    rowWidth: function () { return this.$store.state.settings.groupsRowWidth[this.s][0] },
     groups () { return this.$store.state.groups }
   },
   methods: {
     onChangeWidth (width) {
-      this.rowWidth = Math.max(this.rowWidth, width)
-      this.$store.state.settings.groupsRowWidth[0] = this.rowWidth
     },
     onChangeHeight (height) {
-      this.rowHeight = Math.max(this.rowHeight, height)
-      this.$store.dispatch('setGroupHeight', { s: this.s, height: this.rowHeight })
     }
   }
 }

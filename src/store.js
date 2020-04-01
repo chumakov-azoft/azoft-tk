@@ -18,6 +18,9 @@ export default new Vuex.Store({
       finalsNum: 1,
       finalsSizes: [10000], // 2 finals, first final is 8 players size
       status: 'edit',
+      ratingSum: '', // sum for pairs
+      ratingSumC: '', // sum coefficient for pairs
+      ratingSystem: 'azoft',
       role: localStorage['role'] || '',
       defaultCurveColor: '#cccccc',
       defaultChevronColor: '#dddddd',
@@ -32,12 +35,13 @@ export default new Vuex.Store({
       pairWidth: 300,
       matchWidth: 220,
       matchHeight: 60,
-      groupsRowWidth: [0],
-      groupsRowHeight: [0],
+      groupsRowWidth: [[0]],
+      groupsRowHeight: [[0]],
       playersPosition: [-600, 0],
       stagesPosition: [[0, 0], [0, 0]],
       placesPosition: [[0, 0], [0, 0]],
-      playersWidth: 0,
+      playersDeltasWidth: 0,
+      playersWidth: 350,
       playersHeight: 0,
       maxScore: 3
     },
@@ -101,8 +105,8 @@ export default new Vuex.Store({
     getDeltaRating: (state) => (s, p1) => {
       return getDeltaRating(state, p1, state.deltas[s][p1], s, -1, -1)
     },
-    getRatingDelta: (state) => (r1, r2, [s1, s2]) => {
-      return getRatingDelta(r1, r2, [s1, s2])
+    getRatingRound: (state) => (r) => {
+      return ratingRound(state, r)
     }
   },
   mutations: {
@@ -141,7 +145,7 @@ export default new Vuex.Store({
           initZoomer(state, state.info.zoom)
           state.settings.type = state.info.type
           state.settings.stages = state.info.stages
-          state.settings.rtype = state.info.rtype
+          state.settings.ratingSum = state.info.ratingSum
           state.settings.status = state.info.status
           state.settings.shortType = state.info.shortType
           if (state.info.nameWidth) state.settings.nameWidth = state.info.nameWidth
@@ -185,11 +189,24 @@ export default new Vuex.Store({
     out (state, { order, $event }) {
       outHalf(state, { order, $event })
     },
+    overPlayer (state, { seed, $event }) {
+      console.log(seed)
+      overPlayer(state, { seed, $event })
+    },
+    outPlayer (state, { seed, $event }) {
+      outPlayer(state, { seed, $event })
+    },
     overGroupCell (state, { order, $event }) {
       overGroupCell(state, { order, $event })
     },
     outGroupCell (state, { order, $event }) {
       outGroupCell(state, { order, $event })
+    },
+    overMatchCell (state, { order, $event }) {
+      overMatchCell(state, { order, $event })
+    },
+    outMatchCell (state, { order, $event }) {
+      outMatchCell(state, { order, $event })
     },
     click (state, { order, $event }) {
       const s = order[0]
@@ -294,15 +311,6 @@ export default new Vuex.Store({
         // console.log('set store audio', data.audio)
         // Vue.set(state.video, 'audio', data.audio)
       })
-    },
-    setGroupHeight ({ state, commit }, { s, height }) {
-      state.settings.groupsRowHeight[0] = height
-      // set Players position
-      state.settings.playersPosition[1] = height / 2 - state.settings.playersHeight / 2
-      // create Players curves
-      if (s === 0 && state.settings.showPlayers) {
-        redrawPlayersCurves(state, s)
-      }
     },
     setGroupReady ({ state, commit }) {
       setGroupReady(state, state.edit.current)
@@ -477,8 +485,8 @@ export default new Vuex.Store({
         // git.saveFile('info.json', JSON.stringify({ ...state.info }).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
         if (state.save.players) {
           git.saveFile('players.json', JSON.stringify({
-            players: state.players0.map(({ short, short2, currentRating, logoUrl, ...items }) => items),
-            pairs: state.save.pairs ? state.players.map(({ location, location2, currentRating, ...items }) => items) : null
+            players: state.players0.map(({ short, short2, currentRating, logoUrl, place, ...items }) => items),
+            pairs: state.save.pairs ? state.players.map(({ location, location2, currentRating, logoUrl, place, ...items }) => items) : null
           }).replace('{', '{\n').replace('[', '[\n').replace(/",/gm, '",\n').replace(/"pairs"/gm, '\n"pairs"').replace(/}/gm, '\n}').replace(/{/gm, '{\n'))
         }
         if (state.save.seeds) {
@@ -490,7 +498,7 @@ export default new Vuex.Store({
       } else {
         if (state.save.players) {
           git.saveFile('players.json', JSON.stringify({
-            players: state.players.map(({ short, short2, currentRating, curve, logoUrl, ...items }) => items)
+            players: state.players.map(({ short, short2, currentRating, curve, logoUrl, place, ...items }) => items)
           }).replace('{', '{\n').replace('[', '[\n').replace(/",/gm, '",\n').replace(/"pairs"/gm, '\n"pairs"').replace(/}/gm, '\n}').replace(/{/gm, '{\n'))
         }
         if (state.save.seeds) {
@@ -554,9 +562,9 @@ function preparePairs (state, pairs) {
     let player2 = state.players0[l - i - 1]
     let r1 = player1.currentRating
     let r2 = player2.currentRating
-    let w = state.settings.rtype === 'average' ? 0.5 : (r1 - r2) / (r1 + r2) / 2.5 + 0.5
+    let w = state.settings.ratingSum === 'average' ? 0.5 : (r1 - r2) / (r1 + r2) / state.settings.ratingSumC + 0.5
     // console.log(i, l, player1, player2, w)
-    let r = state.settings.rtype === 'sum' ? r1 + r2 : Math.round(r1 * (1 - w) + r2 * w)
+    let r = state.settings.ratingSum === 'sum' ? r1 + r2 : Math.round(r1 * (1 - w) + r2 * w)
     state.players[i] = {
       name: player1.name,
       name2: player2.name,
@@ -697,19 +705,25 @@ function createGroups (state, s, groups, mesh, seeds, scores, places, curves, de
       stage: s,
       order: [s, g],
       seeds: seeds[g],
-      position: [mesh[g][0], mesh[g][1]]
+      position: [mesh[g][0], mesh[g][1], mesh[g][2], mesh[g][3]]
     })
     // add places for groups
     const len = seeds[g].length
     places.push(Array(len))
-    calcGroupPlaces(state, seeds[g], scores[g], places[g], curves, deltas, s, g)
+    calcGroupPlaces(state, groups, seeds[g], scores[g], places[g], curves, deltas, s, g)
+  }
+  if (s === 0 && state.settings.showPlayers) {
+    state.settings.playersHeight = 30 * state.players.length + 57
+    state.settings.playersPosition[1] = state.settings.groupsRowHeight[s][0] / 2 - state.settings.playersHeight / 2
+    setTimeout(() => redrawPlayersCurves(state, s))
   }
 }
 
-function calcGroupPlaces (state, seeds, scores, places, curves, deltas, s, g) {
+function calcGroupPlaces (state, groups, seeds, scores, places, curves, deltas, s, g) {
   let finished = 0
+  let maxDeltasWidth = 0
   const current = []
-  const len = scores.length
+  const len = seeds.length
   for (let i = 0; i < len; i++) {
     const seed = seeds[i]
     Vue.set(deltas, seed, [])
@@ -723,16 +737,16 @@ function calcGroupPlaces (state, seeds, scores, places, curves, deltas, s, g) {
       const seed2 = seeds[j]
       const delta2 = getRatingDelta(state.players[seed].rating, state.players[seed2].rating, [result[0], result[1]])
       if (result[2] === 'win1') {
-        const delta = Math.round(delta2[0])
+        const delta = ratingRound(state, delta2[0])
         const deltaS = delta > 0 ? '+' + delta : String(delta)
-        deltas[seed].push({ x: 0, value: delta, text: deltaS, width: deltaS.length * 5 + 8, time: result[4], seed2: seed2, order: [s, i, j] })
+        deltas[seed].push({ x: 0, value: delta, text: deltaS, width: deltaS.length * 5 + 8, time: result[4], seed2: seed2, order: [s, g, i, j] })
         current[i].min += 2
         current[i].max += 2
         finished++
       } else if (result[2] === 'win2') {
-        const delta = Math.round(delta2[1])
+        const delta = ratingRound(state, delta2[1])
         const deltaS = delta > 0 ? '+' + delta : String(delta)
-        deltas[seed].push({ x: 0, value: delta, text: deltaS, width: deltaS.length * 5 + 8, time: result[4], seed2: seed2, order: [s, i, j] })
+        deltas[seed].push({ x: 0, value: delta, text: deltaS, width: deltaS.length * 5 + 8, time: result[4], seed2: seed2, order: [s, g, i, j] })
         current[i].min += (result[0] === 'Tex') ? 0 : 1
         current[i].max += (result[0] === 'Tex') ? 0 : 1
         finished++
@@ -746,13 +760,29 @@ function calcGroupPlaces (state, seeds, scores, places, curves, deltas, s, g) {
     let sum = 0
     let rating = getDeltaRating(state, seed, [], s, -1, -1)
     for (let delta of deltas[seed]) {
+      delta.isGroup = true
       delta.x = sum
       rating += delta.value
       delta.rating = rating
-      sum += delta.width + 5
+      sum += delta.width + 4
     }
+    maxDeltasWidth = Math.max(maxDeltasWidth, sum)
   }
-  // console.log(current)
+  if (state.settings.playersDeltasWidth < maxDeltasWidth) {
+    state.settings.playersDeltasWidth = maxDeltasWidth
+  }
+  // const groups = state.groups[s]
+  groups[g].position[3] = Math.max(groups[g].position[3], len * 30 + 37 + 40) // height
+  groups[g].position[2] = Math.max(groups[g].position[2], state.settings.nameWidth + 100 + 30 * len + 90 + maxDeltasWidth) // width
+  state.settings.groupsRowWidth[s][0] = Math.max(groups[g].position[2], state.settings.groupsRowWidth[s][0]) // row width
+  if (g > 0) {
+    // groups[g + 1].position[1] = groups[g].position[1] + groups[g + 1].position[3] + 45
+    groups[g].position[1] = groups[g - 1].position[1] + groups[g - 1].position[3]
+    // Vue.set(state.settings.groupsRowHeight[s], 0, groups[g].position[1] + groups[g].position[3] + 15)
+    state.settings.groupsRowHeight[s][0] = groups[g].position[1] + groups[g].position[3]
+    // console.log(groups[g].position[1] + groups[g].position[3] + 45)
+  }
+  // console.log(g, maxDeltasWidth, groups[g].position, state.settings.groupsRowWidth, state.settings.groupsRowHeight)
   // too few games
   if (finished < len) {
     current.forEach((item, index) => {
@@ -763,9 +793,6 @@ function calcGroupPlaces (state, seeds, scores, places, curves, deltas, s, g) {
         })
       }
     })
-    // players[i].curve = createPlayersCurve(state, i, { color: state.colors[i], shiftX: 0 })
-    // curves.push(state.players[i].curve)
-
     return
   }
   // all games
@@ -983,7 +1010,7 @@ function createFinals (state, s, matches, mesh, seeds, scores, places, curves, d
   }
   // console.log(matches)
   places.length = seeds.length
-  createTopCurves(state, s)
+  calcFinPlaces(state, s)
   // console.log(44444, state.places)
 }
 
@@ -1010,6 +1037,22 @@ function outHalf (state, { order, $event }) {
     state.edit.next = false
   }
   document.querySelectorAll('#player' + state.edit.over[0]).forEach((element) => element.classList.remove('over'))
+}
+
+function overPlayer (state, { seed, $event }) {
+  if ($event && (seed !== state.edit.current[0])) {
+    state.edit.current = [seed]
+    state.edit.type = 'player'
+    state.edit.over = [seed]
+  }
+  document.querySelectorAll('#player' + seed + ':not(.empty)').forEach((element) => element.classList.add('over'))
+}
+
+function outPlayer (state, { seed, $event }) {
+  if ($event && state.edit.current) {
+    state.edit.next = false
+  }
+  document.querySelectorAll('#player' + seed).forEach((element) => element.classList.remove('over'))
 }
 
 function setMatchScore (state, order, score, opponent = false) {
@@ -1053,11 +1096,31 @@ function setMatchWinner (state, order, opponent = false) {
   updateNextMatchCurves(state, s, i, j, p1, p2, true)
 }
 
+function overMatchCell (state, { order, $event }) {
+  const s = order[0]
+  const g = order[1]
+  const i = order[2]
+  const j = order[3]
+  console.log(order)
+  // const seed1 = state.seeds[s][g][i]
+  // const seed2 = state.seeds[s][g][j]
+}
+
+function outMatchCell (state, { order, $event }) {
+  const s = order[0]
+  const g = order[1]
+  const i = order[2]
+  const j = order[3]
+  // const seed1 = state.seeds[s][g][i]
+  // const seed2 = state.seeds[s][g][j]
+}
+
 function overGroupCell (state, { order, $event }) {
   const s = order[0]
   const g = order[1]
   const i = order[2]
   const j = order[3]
+  console.log(order)
   const seed1 = state.seeds[s][g][i]
   const seed2 = state.seeds[s][g][j]
   // if (seed1 < 0 || seed2 < 0) return
@@ -1135,7 +1198,7 @@ function setGroupScore (state, order, score, opponent = false) {
   // state.scores[s][g][g][j] = score
   Vue.set(state.scores[s][g][i][j], opponent ? 1 : 0, score)
   Vue.set(state.scores[s][g][j][i], opponent ? 0 : 1, score)
-  calcGroupPlaces(state, state.seeds[s][g], state.scores[s][g], state.places[s][g], state.curves[s], state.deltas[s], s, g)
+  calcGroupPlaces(state, state.groups[s], state.seeds[s][g], state.scores[s][g], state.places[s][g], state.curves[s], state.deltas[s], s, g)
   // Vue.set(state.scores[s][g][j], g, [...state.scores[s][g][j][g]])
   // console.log(JSON.stringify(state.scores).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
   // console.log(JSON.stringify(state.seeds).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
@@ -1151,7 +1214,7 @@ function deleteGroupScore (state, order) {
   // state.scores[s][g][g][j] = score
   Vue.set(state.scores[s][g][i], j, [0, 0, '', 0, 0])
   Vue.set(state.scores[s][g][j], i, [0, 0, '', 0, 0])
-  calcGroupPlaces(state, state.seeds[s][g], state.scores[s][g], state.places[s][g], state.curves[s], state.deltas[s], s, g)
+  calcGroupPlaces(state, state.groups[s], state.seeds[s][g], state.scores[s][g], state.places[s][g], state.curves[s], state.deltas[s], s, g)
 }
 
 function setGroupWinner (state, order, opponent = false) {
@@ -1370,13 +1433,17 @@ function updateNextMatches (state, s, i, j, p1, p2) {
       let status = state.scores[s][i0][Math.floor(j0 / 2)][2]
       // const match0 = state.matches[s][i0][Math.floor(j0 / 2)]
       if (j0 % 2) {
-        if (status === 'ready1') {
+        if (status === 'win1' || status === 'win2') {
+          // status = 'ready'
+        } else if (status === 'ready1') {
           status = 'ready'
         } else if (status === '' || status === 'progress') {
           status = 'ready2'
         }
       } else {
-        if (status === 'ready2') {
+        if (status === 'win1' || status === 'win2') {
+          // status = 'ready'
+        } else if (status === 'ready2') {
           status = 'ready'
         } else if (status === '' || status === 'progress') {
           status = 'ready1'
@@ -1392,13 +1459,17 @@ function updateNextMatches (state, s, i, j, p1, p2) {
       let status = state.scores[s][i0][Math.floor(j0 / 2)][2]
       // const match1 = state.matches[s][i0][Math.floor(j0 / 2)]
       if (j0 % 2) {
-        if (status === 'ready1') {
+        if (status === 'win1' || status === 'win2') {
+          // status = 'ready'
+        } else if (status === 'ready1') {
           status = 'ready'
         } else if (status === '' || status === 'progress') {
           status = 'ready2'
         }
       } else {
-        if (status === 'ready2') {
+        if (status === 'win1' || status === 'win2') {
+          // status = 'ready'
+        } else if (status === 'ready2') {
           status = 'ready'
         } else if (status === '' || status === 'progress') {
           status = 'ready1'
@@ -1424,6 +1495,8 @@ function updateNextMatchCurves (state, s, i, j, p1, p2, isFinished) {
         updateMatchCurve(match0.curves[0], state, p1, match0.order[0], match0.order[1], match0.order[2], 0,
           { color: isFinished ? state.colors[p1] : null, shiftX: match0.curvesShiftX[0] })
       }
+    } else {
+      calcFinPlaces(state, s)
     }
     ({ i0, j0 } = getNextSeed(state, p2, s, i))
     if (p2 !== -1 && j0 !== -1) {
@@ -1435,7 +1508,11 @@ function updateNextMatchCurves (state, s, i, j, p1, p2, isFinished) {
         updateMatchCurve(match1.curves[0], state, p2, match1.order[0], match1.order[1], match1.order[2], 0,
           { color: isFinished ? state.colors[p2] : null, shiftX: match1.curvesShiftX[0] })
       }
+    } else {
+      calcFinPlaces(state, s)
     }
+  } else {
+    calcFinPlaces(state, s)
   }
 }
 
@@ -1487,7 +1564,7 @@ function createMatchCurve (state, p1, s, i, j, pos1, { color, shiftX }) {
   }
 }
 
-function createTopCurves (state, stage) {
+function calcFinPlaces (state, stage) {
   const sizes = state.settings.finalsSizes
   // if (s < state.info.stages.length) return
   let place = 0
@@ -1509,26 +1586,40 @@ function createTopCurves (state, stage) {
         offset += 100000
       }
     }
-    // console.log(1111, k, fin, offset, status, seeds)
+    // k === 0 && console.log(1111, s, k, fin, offset, status, state.places[s][k])
     // console.log(state.scores[s][i][j])
     if (status === 'win1') {
       const seed = state.seeds[s][i][j * 2 + p]
+      state.players[seed].place = k
       state.places[s][k] = {
         fin,
         place,
         seed,
         order: [s, i, j, p]
       }
-      state.curves2[2][seed] = createFinCurve(state, s, seed, fin, place)
+      if (!state.curves2[2][seed]) {
+        state.curves2[2][seed] = createFinCurve(state, s, seed, fin, place)
+      } else {
+        updateFinCurve(state, s, seed, fin, place, state.curves2[2][seed])
+        Vue.set(state.places[s], k, state.places[s][k])
+        Vue.set(state.curves2[2], seed, state.curves2[2][seed])
+      }
     } else if (status === 'win2') {
       const seed = state.seeds[s][i][j * 2 + (1 - p)]
+      state.players[seed].place = k
       state.places[s][k] = {
         fin,
         place,
         seed,
         order: [s, i, j, (1 - p)]
       }
-      state.curves2[2][seed] = createFinCurve(state, s, seed, fin, place)
+      if (!state.curves2[2][seed]) {
+        state.curves2[2][seed] = createFinCurve(state, s, seed, fin, place)
+      } else {
+        updateFinCurve(state, s, seed, fin, place, state.curves2[2][seed])
+        Vue.set(state.places[s], k, state.places[s][k])
+        Vue.set(state.curves2[2], seed, state.curves2[2][seed])
+      }
     } else {
       state.places[s][k] = {
         fin,
@@ -1541,7 +1632,7 @@ function createTopCurves (state, stage) {
 }
 
 function redrawPlayersCurves (state, s) {
-  console.log('redraw stage curves')
+  // console.log('redraw stage curves')
   for (let seed = 0; seed < state.players.length; seed++) {
     if (state.curves2[0][seed]) {
       updatePlayersCurve(state, seed, state.curves2[0][seed], { color: state.colors[seed], shiftX: 0 })
@@ -1592,6 +1683,7 @@ function redrawPlayersCurves (state, s) {
 
 function updatePlayersCurve (state, seed, curv, { color, shiftX }) {
   let { i0, j0 } = getStage0Position(state, seed)
+  // console.log('upda', state.settings.playersPosition[0], state.settings.playersWidth)
   curv.d = getCurve(
     state.settings.playersPosition[0] + state.settings.playersWidth,
     state.settings.playersPosition[1] + seed * 30 + 44,
@@ -1604,9 +1696,10 @@ function updatePlayersCurve (state, seed, curv, { color, shiftX }) {
 
 function createPlayersCurve (state, seed, { color, shiftX }) {
   let { i0, j0 } = getStage0Position(state, seed)
+  // console.log('crea', state.settings.playersPosition[0], state.settings.playersWidth)
   return {
     d: getCurve(
-      state.settings.playersPosition[0] + state.settings.playersWidth + 20,
+      state.settings.playersPosition[0] + state.settings.playersWidth,
       state.settings.playersPosition[1] + seed * 30 + 44,
       0,
       state.groups[0][i0].position[1] + j0 * 30 + 44,
@@ -1626,7 +1719,7 @@ function createStageCurve (state, s, seed, i0, j0, j1, { color, shiftX }) {
   // console.log(f0, pos0, state.mesh[s + 1][0][f0 * 2 + 1], state.matches[s + 1][0][f0].position[pos0])
   return {
     d: getCurve(
-      state.groups[s][i0].position[0] + state.settings.groupsRowWidth[s],
+      state.groups[s][i0].position[0] + state.settings.groupsRowWidth[s][0],
       state.groups[s][i0].position[1] + j0 * 30 + 44,
       state.matches[s + 1][0][Math.floor(j1 / 2)].position[0] + state.settings.stagesPosition[s + 1][0],
       state.matches[s + 1][0][Math.floor(j1 / 2)].position[1] + state.settings.stagesPosition[s + 1][1] + state.settings.matchHeight / 4 + pos0 * 30,
@@ -1645,7 +1738,7 @@ function updateStageCurve (state, s, seed, i0, j0, j1, curv, { color, shiftX }) 
   // console.log(2222, j0, i0, s, seed, state3.mesh[s + 1][0][j0], state.groups[s][i0].position)
   // console.log(f0, pos0, state.mesh[s + 1][0][f0 * 2 + 1], state.matches[s + 1][0][f0].position[pos0])
   curv.d = getCurve(
-    state.groups[s][i0].position[0] + state.settings.groupsRowWidth[s],
+    state.groups[s][i0].position[0] + state.settings.groupsRowWidth[s][0],
     state.groups[s][i0].position[1] + j0 * 30 + 44,
     state.matches[s + 1][0][Math.floor(j1 / 2)].position[0] + state.settings.stagesPosition[s + 1][0],
     state.matches[s + 1][0][Math.floor(j1 / 2)].position[1] + state.settings.stagesPosition[s + 1][1] + state.settings.matchHeight / 4 + pos0 * 30,
@@ -1669,7 +1762,7 @@ function createFinCurve (state, s, seed, fin, place) {
   }
 }
 
-function updateFinCurve (state, s, seed, fin, place, curv, { color, shiftX }) {
+function updateFinCurve (state, s, seed, fin, place, curv) {
   let { i0, j0 } = getLastSeed(state, seed, s)
   let pos0 = j0 % 2
   curv.d = getCurve(
@@ -1693,6 +1786,7 @@ function addMatchDeltas (state, p1, p2, order) {
   const s = order[0]
   const i = order[1]
   const j = order[2]
+  // console.log(order)
   const deltas = state.deltas[order[0]]
   if (!deltas[p1]) {
     deltas[p1] = []
@@ -1705,28 +1799,34 @@ function addMatchDeltas (state, p1, p2, order) {
   const time = result[4]
   const delta2 = getRatingDelta(state.players[p1].rating, state.players[p2].rating, [result[0], result[1]])
   // push delta for the first player
-  let value = status === 'win1' ? Math.round(delta2[0]) : Math.round(delta2[1])
+  let value = status === 'win1' ? ratingRound(state, delta2[0]) : ratingRound(state, delta2[1])
   let text = value > 0 ? '+' + value : String(value)
   let rating = getDeltaRating(state, p1, deltas[p1], s, i, j) + value
-  let x = getDeltaX(state, p1, deltas[p1], s)
-  addDelta(deltas[p1], { x, value, text, width: text.length * 5 + 8, time, seed2: p2, order, rating })
+  let allDeltas = order[0] ? state.deltas[0][p1].concat(deltas[p1]) : deltas[p1]
+  let x = getDeltaX(state, p1, allDeltas)
+  addDelta(state, deltas[p1], { x, value, text, width: text.length * 5 + 8, time, seed2: p2, order, rating })
   // push delta for the second player
-  value = status === 'win2' ? Math.round(delta2[0]) : Math.round(delta2[1])
+  value = status === 'win2' ? ratingRound(state, delta2[0]) : ratingRound(state, delta2[1])
   text = value > 0 ? '+' + value : String(value)
   rating = getDeltaRating(state, p2, deltas[p2], s, i, j) + value
-  x = getDeltaX(state, p2, deltas[p2], s)
-  addDelta(deltas[p2], { x, value, text, width: text.length * 5 + 8, time, seed2: p1, order, rating })
+  allDeltas = order[0] ? state.deltas[0][p2].concat(deltas[p2]) : deltas[p2]
+  x = getDeltaX(state, p2, allDeltas)
+  addDelta(state, deltas[p2], { x, value, text, width: text.length * 5 + 8, time, seed2: p1, order, rating })
+  // console.log(p1, p2, order, deltas[0])
   // if (p1 === 0) {
   //   console.log(delta2, deltas[p1])
   // }
 }
 
-function addDelta (deltas, delta) {
+function addDelta (state, deltas, delta) {
   const deltaIndex = deltas.findIndex((item) => item.order[1] === delta.order[1] && item.order[2] === delta.order[2])
   if (deltaIndex === -1) {
     Vue.set(deltas, deltas.length, delta)
   } else {
     Vue.set(deltas, deltaIndex, delta)
+  }
+  if (state.settings.playersDeltasWidth < delta.x + delta.width) {
+    state.settings.playersDeltasWidth = delta.x + delta.width
   }
 }
 
@@ -1864,6 +1964,16 @@ function getLastSeed (state, p1, s) {
     }
   }
   return { i0, j0 }
+}
+
+function ratingRound (state, rating) {
+  if (state.settings.ratingSystem === 'azoft') {
+    return Math.round(rating)
+  } else if (state.settings.ratingSystem === 'ttw') {
+    return Math.round(rating * 100) / 100
+  } else if (state.settings.ratingSystem === 'academtour') {
+    return Math.round(rating)
+  }
 }
 
 function initZoomer (state, zoomData) {

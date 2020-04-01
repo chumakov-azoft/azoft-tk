@@ -1,20 +1,22 @@
 <template>
-  <g :class="placeClass" @click="editPlayer">
+  <g :class="placeClass" @click="editPlayer"
+    @mouseout="$store.commit('outPlayer', {seed, $event})"
+    @mouseover="$store.commit('overPlayer', {seed, $event})">
     <rect class="group-player-shade" :width="backWidth" height="30" v-if="backVisible"></rect>
-    <rect v-if="seed >= 0" class="group-player" :width="backWidth" height="30"></rect>
+    <rect v-if="seed >= 0" class="group-player" :width="nameWidth + 120" height="30"></rect>
+    <rect v-if="seed >= 0" class="group-player-end" :x="nameWidth + 120" :width="backWidth - nameWidth - 120" height="30"></rect>
     <text x="12" y="19" text-anchor="middle" class="group-player-order">{{index + 1}}</text>
     <text v-if="seed >= 0" x="36" y="19" text-anchor="middle" class="group-player-rating">{{rating}}</text>
     <image v-if="seed >= 0 && showLogo" :href="logo" x="57" y="6.5" height="18" width="18"></image>
     <text v-if="seed >= 0" :x="showLogo ? 80 : 57" y="21" :textLength="stretchNames ? nameWidth : null" class="group-player-name">{{name}}</text>
-    <g v-if="seed >= 0" :transform="`translate(${nameWidth + 50} 0)`">
+    <g v-if="seed >= 0" :transform="`translate(${nameWidth + 120} 0)`">
       <group-delta v-for="(delta, count) in deltas" :key="'groupDelta' + count" class="group-delta"
                    :transform="`translate(${delta.x + 8} 0)`"
                    :order="[...order, delta.index]"
                    :delta = delta
       ></group-delta>
     </g>
-    <text :x="backWidth - 25" y="21" text-anchor="middle" class="group-player-place" v-if="place.length === 1">{{place[0]}}</text>
-    <text :x="backWidth - 25" y="21" text-anchor="middle" class="group-player-range" v-if="place.length === 2">{{place[0] + '..' + place[1]}}</text>
+    <text :x="backWidth - 25" y="21" text-anchor="middle" class="group-player-place">{{place}}</text>
   </g>
 </template>
 
@@ -57,40 +59,12 @@ export default {
     showLogo () { return this.$store.state.settings.showLogo && this.logo },
     stretchNames () { return this.$store.state.settings.stretchNames },
     result () { return [] },
-    deltas () {
-      let sum = 0
-      const e = this.result.map((item, index) => {
-        if (item && (item[2] === 'win1' || item[2] === 'win2')) {
-          const seed2 = this.seeds[index]
-          const delta2 = this.$store.getters.getRatingDelta(this.player.rating, this.$store.state.players[seed2].rating, [item[0], item[1]])
-          const delta = Math.round(item[2] === 'win1' ? delta2[0] : delta2[1])
-          const deltaS = delta > 0 ? '+' + delta : String(delta)
-          return { value: delta, text: deltaS, width: deltaS.length * 5 + 8, time: item[4], seed2: seed2, index: index }
-        }
-        return null
-      }).filter(Boolean).sort((a, b) => {
-        return a.time - b.time
-      }).map(item => {
-        // console.log(sum)
-        item.x = sum
-        sum += item.width + 4
-        return item
-      })
-      this.$emit('changeDeltasWidth', sum)
-      return e
-    },
-    place () { return [] },
+    deltas () { return this.$store.state.deltas[this.order[0]][this.seed].concat(this.$store.state.deltas[this.order[0] + 1] ? this.$store.state.deltas[this.order[0] + 1][this.seed] : []) },
+    places () { return this.$store.state.places[this.$store.state.places.length - 1] },
+    place () { return this.player.place !== undefined ? this.player.place + 1 : '' },
     placeClass () {
-      if (this.place.length === 1) {
-        const p = this.place[0].toString()
-        const arr = p.split('..')
-        if (arr[0] === '1') {
-          return 'place--1'
-        } else if (arr[0] === '2') {
-          return 'place--2'
-        } else if (arr[0] === '3') {
-          return 'place--3'
-        }
+      if (this.place && this.place < 4) {
+        return 'place--' + this.place
       }
       return null
     },
@@ -118,13 +92,13 @@ export default {
   fill: #fff663;
 }
 .championsHighlight .place--2 .group-player, .championsHighlight .place--2 .group-player-end {
-  fill: #e8e8e8;
+  fill: #d2d2d2;
 }
 .championsHighlight .place--3 .group-player, .championsHighlight .place--3 .group-player-end {
   fill: #ffcd99;
 }
 .overHighlight .over .group-player {
-  fill: #80ff55;
+  fill: #00f9ff;
 }
 .group-player-name {
   font-size: 16px;

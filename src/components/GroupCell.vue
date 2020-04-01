@@ -90,14 +90,14 @@ export default {
 }
 .group-cell-over {
   .group-cell-empty {
-    fill: #f7f19b;
+    fill: #00f9ff;
   }
   .group-cell-plus {
-    fill: #c5ff55;
+    fill: #00f9ff;
     // fill: rgba(128, 255, 85, 0.4)
   }
   .group-cell-minus {
-    fill: #ff9950;
+    fill: #00f9ff;
     // fill: rgba(255, 80, 80, 0.4)
   }
 }

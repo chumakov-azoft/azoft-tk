@@ -7,7 +7,7 @@
         <text x="22" y="22" text-anchor="middle" class="match--rating">#</text>
         <text x="49" y="22" text-anchor="end" class="match--rating">R</text>
         <text :x="showLogo ? 110 : 94" y="22" text-anchor="end" class="match--rating">{{isPairs ? 'Пара' : 'Игрок'}}</text>
-        <text :x="placesWidth - 16" y="22" text-anchor="end" class="match--rating">Дельта</text>
+        <text :x="placesWidth - 26" y="22" text-anchor="end" class="match--rating">Дельта</text>
         <place v-for="(place, count) in placesCurrent" :key="'place' + place.place"
                :transform="`translate(10 ${count * 30 + 29})`"
                :index="place.place"

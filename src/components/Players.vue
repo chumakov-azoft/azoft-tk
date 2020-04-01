@@ -1,20 +1,24 @@
 <template>
-  <g :transform="`translate(${position[0]} ${position[1]})`" :id="'players-' + order[0] + '-' + index">
-    <text x="5" y="-12" text-anchor="start" class="group--title">{{groupTitle}}</text>
-    <g>
-      <rect class="group" :width="playersWidth" :height="groupHeight"></rect>
-      <text x="22" y="22" text-anchor="middle" class="match--rating">#</text>
-      <text x="49" y="22" text-anchor="end" class="match--rating">R</text>
-      <text :x="showLogo ? 110 : 94" y="22" text-anchor="end" class="match--rating">{{isPairs ? 'Пара' : 'Игрок'}}</text>
-      <!--<text :x="playersWidth - 20" y="22" text-anchor="end" class="match&#45;&#45;rating">Рейтинг</text>-->
-      <player v-for="(player, seed) in players" :key="'player' + seed" :id="'player' + seed" @changeDeltasWidth="onChangeDeltasWidth"
-                  :transform="`translate(10 ${seed * 30 + 29})`"
-                  :index="seed"
-                  :order="[...order, seed]"
-                  :backWidth="playersWidth - 20"
-                  :backVisible="!(seed%2)"
-      ></player>
-      <image v-if="isAdmin" :href="'/img/PlusGreen.svg'" x="-62" y="13" height="42" width="42" class="" @click="$store.state.edit.addPlayerDialog = true"></image>
+  <g>
+    <g :transform="`translate(${playersPositionX} ${playersPositionY})`" :id="'players-' + order[0] + '-' + index">
+      <text x="5" y="-12" text-anchor="start" class="group--title">{{groupTitle}}</text>
+      <g style="filter:url(#dropshadow)">
+        <rect class="group" :width="playersWidth" :height="groupHeight"></rect>
+        <text x="22" y="22" text-anchor="middle" class="match--rating">#</text>
+        <text x="49" y="22" text-anchor="end" class="match--rating">R</text>
+        <text :x="showLogo ? 110 : 94" y="22" text-anchor="end" class="match--rating">{{isPairs ? 'Пара' : 'Игрок'}}</text>
+        <text :x="deltaPosition" y="22" text-anchor="start" class="match--rating">{{deltaText}}</text>
+        <text :x="playersWidth - 20" y="22" text-anchor="end" class="match--rating">Место</text>
+        <!--<text :x="playersWidth - 20" y="22" text-anchor="end" class="match&#45;&#45;rating">Рейтинг</text>-->
+        <player v-for="(player, seed) in players" :key="'player' + seed" :id="'player' + seed"
+                :transform="`translate(10 ${seed * 30 + 29})`"
+                :index="seed"
+                :order="[...order, seed]"
+                :backWidth="playersWidth - 20"
+                :backVisible="!(seed%2)"
+        ></player>
+        <image v-if="isAdmin" :href="'/img/PlusGreen.svg'" x="-62" y="13" height="42" width="42" class="" @click="$store.state.edit.addPlayerDialog = true"></image>
+      </g>
     </g>
   </g>
 </template>
@@ -33,14 +37,6 @@ export default {
     order: {
       type: Array,
       default: () => []
-    },
-    position: {
-      type: Array,
-      default: () => [ 0, 0 ]
-    },
-    playersWidth: {
-      type: Number,
-      default: 200
     }
   },
   data: () => ({
@@ -53,19 +49,21 @@ export default {
     players: function () { return this.$store.state.players },
     groupTitle: function () { return 'Игроки' },
     groupHeight: function () {
-      this.onChangeHeight(30 * this.players.length + 37)
+      // this.onChangeHeight(30 * this.players.length + 37)
       return 30 * this.players.length + 37
     },
-    nameWidth: function () { return this.$store.state.settings.nameWidth }
+    nameWidth: function () { return this.$store.state.settings.nameWidth },
+    deltaPosition: function () { return this.nameWidth + 150 },
+    deltaText: function () { return this.$store.state.settings.playersDeltasWidth > 130 ? 'Дельта рейтинга' : this.$store.state.settings.playersDeltasWidth > 50 ? 'Дельта' : '' },
+    playersWidth: function () { return this.$store.state.settings.playersWidth + this.$store.state.settings.playersDeltasWidth },
+    playersPosition: function () { return this.$store.state.settings.playersPosition },
+    playersPositionX: function () { return this.playersPosition[0] - this.$store.state.settings.playersDeltasWidth },
+    playersPositionY: function () { return this.playersPosition[1] }
   },
   methods: {
     onChangeDeltasWidth (width) {
-      this.deltasWidth = Math.max(this.deltasWidth, width)
-      this.$store.state.settings.playersWidth = 100 + 90 + this.deltasWidth + (this.isAdmin ? 60 : 0)
     },
     onChangeHeight (height) {
-      this.$store.state.settings.playersHeight = height
-      this.$store.state.settings.playersPosition[1] = this.$store.state.settings.groupsRowHeight[0] / 2 - height / 2
     }
   },
   mounted () {

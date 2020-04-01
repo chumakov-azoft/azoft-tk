@@ -80,12 +80,10 @@
 
         <texts :texts="$store.state.titles"></texts>
 
-        <g style="filter:url(#dropshadow)" :id="'players-' + 0" v-if="showPlayers">
+        <g :id="'players-' + 0" v-if="showPlayers">
           <players
             :index="0"
             :order="[0]"
-            :position="[playersPosition[0], playersPosition[1]]"
-            :playersWidth="350"
           ></players>
         </g>
 

@@ -53,7 +53,7 @@ export default {
     deltas: function () { return this.$store.state.deltas[this.order[0]][this.seed] },
     currentDelta: function () { return this.deltas ? this.deltas.find((item) => item.order[1] === this.order[1] && item.order[2] === this.order[2]) : null },
     lastRating: function () { return this.$store.getters.getDeltaRating(this.single ? 0 : this.order[0], this.seed) },
-    rating: function () { return this.currentDelta ? this.currentDelta.rating - this.currentDelta.value : this.lastRating },
+    rating: function () { return Math.round(this.currentDelta ? this.currentDelta.rating - this.currentDelta.value : this.lastRating) },
     matchStatus: function () { return this.$store.state.scores[this.order[0]][this.order[1]][this.order[2]][2] },
     status: function () { return this.order[3] ? (this.matchStatus === 'ready1' ? '' : this.matchStatus) : (this.matchStatus === 'ready2' ? '' : this.matchStatus) },
     score: function () { return this.$store.state.scores[this.order[0]][this.order[1]][this.order[2]][this.order[3]] },
@@ -73,13 +73,13 @@ export default {
   fill: #fff663;
 }
 .championsHighlight .place--2 .player {
-  fill: #e8e8e8;
+  fill: #d2d2d2;
 }
 .championsHighlight .place--3 .player {
   fill: #ffcd99;
 }
 .overHighlight .over .player {
-  fill: #80ff55;
+  fill: #00f9ff;
 }
 .player {
   fill: #ffffff;
