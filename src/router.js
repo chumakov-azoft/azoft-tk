@@ -22,7 +22,7 @@ const router = new Router({
     },
     {
       path: '/now',
-      redirect: '/events/open-2'
+      redirect: '/events/open-3'
     },
     {
       path: '/events/:section/:media?/:score?',

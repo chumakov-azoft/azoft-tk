@@ -53,8 +53,8 @@ export default {
       return 30 * this.players.length + 37
     },
     nameWidth: function () { return this.$store.state.settings.nameWidth },
-    deltaPosition: function () { return this.nameWidth + 150 },
-    deltaText: function () { return this.$store.state.settings.playersDeltasWidth > 130 ? 'Дельта рейтинга' : this.$store.state.settings.playersDeltasWidth > 50 ? 'Дельта' : '' },
+    deltaPosition: function () { return this.nameWidth + 140 },
+    deltaText: function () { return this.$store.state.settings.playersDeltasWidth > 130 ? 'Дельта рейтинга' : this.$store.state.settings.playersDeltasWidth > 20 ? 'Дельта' : '' },
     playersWidth: function () { return this.$store.state.settings.playersWidth + this.$store.state.settings.playersDeltasWidth },
     playersPosition: function () { return this.$store.state.settings.playersPosition },
     playersPositionX: function () { return this.playersPosition[0] - this.$store.state.settings.playersDeltasWidth },

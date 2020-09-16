@@ -11,7 +11,7 @@
         <text x="49" y="22" text-anchor="end" class="match--rating">R</text>
         <text :x="showLogo ? 100 : 94" y="22" text-anchor="end" class="match--rating">{{isPairs ? 'Пара' : 'Игрок'}}</text>
         <text :x="seeds.length * 30 + nameWidth + 117" y="22" text-anchor="end" class="match--rating">Очки</text>
-        <text :x="seeds.length * 30 + nameWidth + 120 + this.deltasWidth / 2" y="22" text-anchor="start" class="match--rating">Дельта</text>
+        <text :x="seeds.length * 30 + nameWidth + 110 + this.deltasWidth / 2" y="22" text-anchor="start" class="match--rating">Дельта</text>
         <text :x="rowWidth - 20" y="22" text-anchor="end" class="match--rating">Место</text>
         <text v-for="(seed, count) in seeds" :key="'groupKey' + count" :x="nameWidth + 97 + 30 * count" y="22" text-anchor="end" class="match--rating">{{count + 1}}</text>
         <group-line v-for="(seed, count) in seeds" :key="'groupLine' + count" :id="'player' + seed"
@@ -56,7 +56,7 @@ export default {
     }
   },
   data: () => ({
-    deltasWidth: 150
+    deltasWidth: 50
   }),
   computed: {
     showLogo () { return this.$store.state.settings.showLogo },

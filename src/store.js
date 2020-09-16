@@ -194,6 +194,7 @@ export default new Vuex.Store({
       overPlayer(state, { seed, $event })
     },
     outPlayer (state, { seed, $event }) {
+      console.log(seed)
       outPlayer(state, { seed, $event })
     },
     overGroupCell (state, { order, $event }) {
@@ -490,7 +491,7 @@ export default new Vuex.Store({
           }).replace('{', '{\n').replace('[', '[\n').replace(/",/gm, '",\n').replace(/"pairs"/gm, '\n"pairs"').replace(/}/gm, '\n}').replace(/{/gm, '{\n'))
         }
         if (state.save.seeds) {
-          git.saveFile('seeds.json', JSON.stringify({ seeds: state.seeds }).replace('[[', '[\n[').replace(/\],\[/gm, '],\n['))
+          // git.saveFile('seeds.json', JSON.stringify({ seeds: state.seeds }).replace('[[', '[\n[').replace(/\],\[/gm, '],\n['))
         }
         if (state.save.scores) {
           git.saveFile('scores.json', JSON.stringify({ scores: state.scores }).replace('[[[', '[\n[[').replace(/\]\],\[/gm, ']],\n['))
@@ -735,19 +736,19 @@ function calcGroupPlaces (state, groups, seeds, scores, places, curves, deltas, 
         continue
       }
       const seed2 = seeds[j]
-      console.log(len, seed, seed2, state.players.length)
+      // console.log(len, seed, seed2, state.players.length)
       const delta2 = getRatingDelta(state.players[seed].rating, state.players[seed2].rating, [result[0], result[1]])
       if (result[2] === 'win1') {
         const delta = ratingRound(state, delta2[0])
         const deltaS = delta > 0 ? '+' + delta : String(delta)
-        deltas[seed].push({ x: 0, value: delta, text: deltaS, width: deltaS.length * 5 + 8, time: result[4], seed2: seed2, order: [s, g, i, j] })
+        deltas[seed].push({ x: 0, win: true, value: delta, text: deltaS, width: deltaS.length * 5 + 8, time: result[4], seed2: seed2, order: [s, g, i, j] })
         current[i].min += 2
         current[i].max += 2
         finished++
       } else if (result[2] === 'win2') {
         const delta = ratingRound(state, delta2[1])
         const deltaS = delta > 0 ? '+' + delta : String(delta)
-        deltas[seed].push({ x: 0, value: delta, text: deltaS, width: deltaS.length * 5 + 8, time: result[4], seed2: seed2, order: [s, g, i, j] })
+        deltas[seed].push({ x: 0, win: false, value: delta, text: deltaS, width: deltaS.length * 5 + 8, time: result[4], seed2: seed2, order: [s, g, i, j] })
         current[i].min += (result[0] === 'Tex') ? 0 : 1
         current[i].max += (result[0] === 'Tex') ? 0 : 1
         finished++
@@ -1121,7 +1122,7 @@ function overGroupCell (state, { order, $event }) {
   const g = order[1]
   const i = order[2]
   const j = order[3]
-  console.log(order)
+  // console.log(order)
   const seed1 = state.seeds[s][g][i]
   const seed2 = state.seeds[s][g][j]
   // if (seed1 < 0 || seed2 < 0) return
@@ -1250,7 +1251,7 @@ function switchSeeds (state, s, i, index1, index2, p1, p2, updateCurves = true) 
 }
 
 function setMatchSeed (state, s, i, j, p, updateCurves = true) {
-  if (!state.matches) {
+  if (!state.matches || !state.matches[s]) {
     return
   }
   // console.log(state.matches)
@@ -1393,6 +1394,9 @@ function updateNextStage (state, s, g, i, seed) {
 }
 
 function updateNextReady (state, s, seed, updateIfSingle = true) {
+  if (!state.matches || !state.matches[s + 1]) {
+    return
+  }
   // position in finals
   const j1 = state.seeds[s + 1][updateIfSingle ? 0 : 1].indexOf(seed)
   let status = state.scores[s + 1][updateIfSingle ? 0 : 1][Math.floor(j1 / 2)][2]
@@ -1715,7 +1719,7 @@ function createStageCurve (state, s, seed, i0, j0, j1, { color, shiftX }) {
   if (!state.matches[s + 1]) {
     return
   }
-  console.log(2222, seed, j1, state.matches[s + 1][0][Math.floor(j1 / 2)].position[1])
+  // console.log(2222, seed, j1, state.matches[s + 1][0][Math.floor(j1 / 2)].position[1])
   if (state.matches[s + 1][0][Math.floor(j1 / 2)].seeds[1] === -1) { // single
     pos0 = 0.5
   }
@@ -1803,19 +1807,21 @@ function addMatchDeltas (state, p1, p2, order) {
   const time = result[4]
   const delta2 = getRatingDelta(state.players[p1].rating, state.players[p2].rating, [result[0], result[1]])
   // push delta for the first player
-  let value = status === 'win1' ? ratingRound(state, delta2[0]) : ratingRound(state, delta2[1])
+  let win = status === 'win1'
+  let value = win ? ratingRound(state, delta2[0]) : ratingRound(state, delta2[1])
   let text = value > 0 ? '+' + value : String(value)
   let rating = getDeltaRating(state, p1, deltas[p1], s, i, j) + value
   let allDeltas = order[0] ? state.deltas[0][p1].concat(deltas[p1]) : deltas[p1]
   let x = getDeltaX(state, p1, allDeltas)
-  addDelta(state, deltas[p1], { x, value, text, width: text.length * 5 + 8, time, seed2: p2, order, rating })
+  addDelta(state, deltas[p1], { x, win, value, text, width: text.length * 5 + 8, time, seed2: p2, order, rating })
   // push delta for the second player
+  win = status === 'win2'
   value = status === 'win2' ? ratingRound(state, delta2[0]) : ratingRound(state, delta2[1])
   text = value > 0 ? '+' + value : String(value)
   rating = getDeltaRating(state, p2, deltas[p2], s, i, j) + value
   allDeltas = order[0] ? state.deltas[0][p2].concat(deltas[p2]) : deltas[p2]
   x = getDeltaX(state, p2, allDeltas)
-  addDelta(state, deltas[p2], { x, value, text, width: text.length * 5 + 8, time, seed2: p1, order, rating })
+  addDelta(state, deltas[p2], { x, win, value, text, width: text.length * 5 + 8, time, seed2: p1, order, rating })
   // console.log(p1, p2, order, deltas[0])
   // if (p1 === 0) {
   //   console.log(delta2, deltas[p1])
