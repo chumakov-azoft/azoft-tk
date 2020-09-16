@@ -56,7 +56,7 @@ export default {
     }
   },
   data: () => ({
-    deltasWidth: 50
+    deltasWidth: 150
   }),
   computed: {
     showLogo () { return this.$store.state.settings.showLogo },

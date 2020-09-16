@@ -735,6 +735,7 @@ function calcGroupPlaces (state, groups, seeds, scores, places, curves, deltas, 
         continue
       }
       const seed2 = seeds[j]
+      console.log(len, seed, seed2, state.players.length)
       const delta2 = getRatingDelta(state.players[seed].rating, state.players[seed2].rating, [result[0], result[1]])
       if (result[2] === 'win1') {
         const delta = ratingRound(state, delta2[0])
@@ -1711,7 +1712,10 @@ function createPlayersCurve (state, seed, { color, shiftX }) {
 
 function createStageCurve (state, s, seed, i0, j0, j1, { color, shiftX }) {
   let pos0 = j1 % 2
-  // console.log(2222, seed, j1, state.matches[s + 1][0][Math.floor(j1 / 2)].position[1])
+  if (!state.matches[s + 1]) {
+    return
+  }
+  console.log(2222, seed, j1, state.matches[s + 1][0][Math.floor(j1 / 2)].position[1])
   if (state.matches[s + 1][0][Math.floor(j1 / 2)].seeds[1] === -1) { // single
     pos0 = 0.5
   }
