@@ -1,7 +1,7 @@
 <template>
   <g :class="placeClass" @click="editPlayer"
-    @mouseout="$store.commit('outPlayer', {seed, $event})"
-    @mouseover="$store.commit('overPlayer', {seed, $event})">
+     @mouseout="$store.commit('outPlayer', {seed, $event})"
+     @mouseover="$store.commit('overPlayer', {seed, $event})">
     <rect class="group-player-shade" :width="backWidth" height="30" v-if="backVisible"></rect>
     <rect v-if="seed >= 0" class="group-player" :width="nameWidth + 120" height="30"></rect>
     <rect v-if="seed >= 0" class="group-player-end" :x="nameWidth + 120" :width="backWidth - nameWidth - 120" height="30"></rect>
@@ -59,7 +59,7 @@ export default {
     showLogo () { return this.$store.state.settings.showLogo && this.logo },
     stretchNames () { return this.$store.state.settings.stretchNames },
     result () { return [] },
-    deltas () { return this.$store.state.deltas[this.order[0]][this.seed].concat(this.$store.state.deltas[this.order[0] + 1] ? this.$store.state.deltas[this.order[0] + 1][this.seed] : []) },
+    deltas () { return this.$store.state.deltas[this.order[0]][this.seed].concat(this.$store.state.deltas[this.order[0] + 1] && this.$store.state.deltas[this.order[0] + 1][this.seed] ? this.$store.state.deltas[this.order[0] + 1][this.seed] : []) },
     places () { return this.$store.state.places[this.$store.state.places.length - 1] },
     place () { return this.player.place !== undefined ? this.player.place + 1 : '' },
     placeClass () {
@@ -97,8 +97,8 @@ export default {
 .championsHighlight .place--3 .group-player, .championsHighlight .place--3 .group-player-end {
   fill: #ffcd99;
 }
-.overHighlight .over .group-player {
-  fill: #00f9ff;
+.overHighlight .over .group-player, .overHighlight .over .group-player-end {
+  fill: #80ff55;
 }
 .group-player-name {
   font-size: 16px;

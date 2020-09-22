@@ -30,6 +30,7 @@ export default new Vuex.Store({
       showLogo: true,
       showPlayers: false,
       showPlaces: false,
+      showFinalsBegin: false,
       nameWidth: 210,
       shortType: '',
       pairWidth: 300,
@@ -146,6 +147,7 @@ export default new Vuex.Store({
           state.settings.type = state.info.type
           state.settings.stages = state.info.stages
           state.settings.ratingSum = state.info.ratingSum
+          state.settings.ratingSumC = state.info.ratingSumC
           state.settings.status = state.info.status
           state.settings.shortType = state.info.shortType
           if (state.info.nameWidth) state.settings.nameWidth = state.info.nameWidth
@@ -153,6 +155,7 @@ export default new Vuex.Store({
           state.settings.stretchNames = state.info.stretchNames
           state.settings.showLogo = state.info.showLogo
           state.settings.showPlayers = state.info.showPlayers
+          state.settings.showFinalsBegin = state.info.showFinalsBegin
           state.settings.showPlaces = state.info.showPlaces
           state.edit.logos = state.info.logos || []
           state.players = values[1].data.players
@@ -190,11 +193,9 @@ export default new Vuex.Store({
       outHalf(state, { order, $event })
     },
     overPlayer (state, { seed, $event }) {
-      console.log(seed)
       overPlayer(state, { seed, $event })
     },
     outPlayer (state, { seed, $event }) {
-      console.log(seed)
       outPlayer(state, { seed, $event })
     },
     overGroupCell (state, { order, $event }) {
@@ -931,6 +932,9 @@ function resolveGroupPlaces (scores, arr, start, maxPlace) {
 }
 function createFinals (state, s, matches, mesh, seeds, scores, places, curves, deltas, players) {
   for (let i = 0; i < seeds.length; i++) {
+    if (state.settings.showFinalsBegin && i > 0) {
+      continue
+    }
     let round = []
     let seedsArr = seeds[i]
     // console.log(s, scores)
@@ -1012,7 +1016,9 @@ function createFinals (state, s, matches, mesh, seeds, scores, places, curves, d
   }
   // console.log(matches)
   places.length = seeds.length
-  calcFinPlaces(state, s)
+  if (!state.settings.showFinalsBegin) {
+    calcFinPlaces(state, s)
+  }
   // console.log(44444, state.places)
 }
 
@@ -1133,8 +1139,8 @@ function overGroupCell (state, { order, $event }) {
     state.edit.type = 'group'
     state.edit.over = [...order]
   }
-  document.querySelectorAll('#player' + seed1 + ':not(.empty)').forEach((element) => element.classList.add('over'))
-  document.querySelectorAll('#player' + seed2 + ':not(.empty)').forEach((element) => element.classList.add('over'))
+  // document.querySelectorAll('#player' + seed1 + ':not(.empty)').forEach((element) => element.classList.add('over'))
+  // document.querySelectorAll('#player' + seed2 + ':not(.empty)').forEach((element) => element.classList.add('over'))
   document.querySelectorAll('#group-' + s + '-' + g + '-' + i + '-' + j + ':not(.empty)').forEach((element) => element.classList.add('group-cell-over'))
   document.querySelectorAll('#group-' + s + '-' + g + '-' + j + '-' + i + ':not(.empty)').forEach((element) => element.classList.add('group-cell-over'))
   // document.querySelectorAll('#player' + state.seeds[s][g][g] + ':not(.empty)').forEach((element) => element.classList.add('over'))
@@ -1251,7 +1257,7 @@ function switchSeeds (state, s, i, index1, index2, p1, p2, updateCurves = true) 
 }
 
 function setMatchSeed (state, s, i, j, p, updateCurves = true) {
-  if (!state.matches || !state.matches[s]) {
+  if (!state.matches || !state.matches[s] || !state.matches[s][i]) {
     return
   }
   // console.log(state.matches)
@@ -1358,6 +1364,7 @@ function updateNextStage (state, s, g, i, seed) {
   // console.log(1111, f0, p, state.seeds[s + 1][0], state.seeds[s + 1][0])
   // console.log('update stage', seed, '->', p, state.players[seed].short)
   if (p === -1) {
+    console.log(state.seeds[s + 1][0], s, g, i - 1)
     console.log('wrong rule', f0, state.seeds[s + 1][0][f0], state.settings.rule[s][f0])
     return
   }
@@ -1394,7 +1401,7 @@ function updateNextStage (state, s, g, i, seed) {
 }
 
 function updateNextReady (state, s, seed, updateIfSingle = true) {
-  if (!state.matches || !state.matches[s + 1]) {
+  if (!state.matches || !state.matches[s + 1] || !state.matches[s + 1][updateIfSingle ? 0 : 1]) {
     return
   }
   // position in finals
@@ -1575,6 +1582,7 @@ function calcFinPlaces (state, stage) {
   let place = 0
   let fin = 0
   let offset = sizes[fin]
+  console.log(state.settings.fin)
   for (let k = 0; k < state.settings.fin.length; k++) {
     const order = state.settings.fin[k]
     const s = order[0]
@@ -1638,6 +1646,7 @@ function calcFinPlaces (state, stage) {
 
 function redrawPlayersCurves (state, s) {
   // console.log('redraw stage curves')
+  // console.log(state.scores[1][0])
   for (let seed = 0; seed < state.players.length; seed++) {
     if (state.curves2[0][seed]) {
       updatePlayersCurve(state, seed, state.curves2[0][seed], { color: state.colors[seed], shiftX: 0 })
@@ -1650,7 +1659,7 @@ function redrawPlayersCurves (state, s) {
       const j1 = state.seeds[1][0].indexOf(seed)
       if (j1 !== -1 && i0 !== -1 && j0 !== -1) {
         let curve1
-        let status = state.scores[1][0][Math.floor(j0 / 2)][2]
+        let status = state.scores[1][0][Math.floor(j1 / 2)][2]
         // console.log(status)
         // const match0 = state.matches[1][0][Math.floor(j1 / 2)]
         if (j1 % 2) {
@@ -1663,20 +1672,21 @@ function redrawPlayersCurves (state, s) {
           }
         }
         if (!curve1) {
-          let f0 = 0
-          const rule = state.settings.rule[s]
-          while (f0 < rule.length) {
-            if ((rule[f0][0] === i0 + 1) && (rule[f0][1] === j0 + 1)) {
-              // console.log('finale place: ', f0)
-              break
-            }
-            f0++
-          }
-          // temp fix
-          if (f0 === 21) {
-            f0 = 19
-          }
-          curve1 = createStageCurve(state, s, seed, i0, j0, f0, { color: null, shiftX: 0 })
+          // let f0 = 0
+          // const rule = state.settings.rule[s]
+          // while (f0 < rule.length) {
+          //   if ((rule[f0][0] === i0 + 1) && (rule[f0][1] === j0 + 1)) {
+          //     // console.log('finale place: ', f0)
+          //     break
+          //   }
+          //   f0++
+          // }
+          // // temp fix
+          // if (f0 === 21) {
+          //   f0 = 19
+          // }
+          // curve1 = createStageCurve(state, s, seed, i0, j0, f0, { color: null, shiftX: 0 })
+          curve1 = createStageCurve(state, s, seed, i0, j0, j1, { color: null, shiftX: 0 })
         }
         // state.curves2[1][seed] = curve1
         Vue.set(state.curves2[1], seed, curve1)

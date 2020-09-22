@@ -39,9 +39,11 @@ export default {
   methods: {
     onOver ($event) {
       if (!this.diagonal) this.$store.commit('overGroupCell', { order: this.order, $event })
+      $event.stopImmediatePropagation()
     },
     onOut ($event) {
       if (!this.diagonal) this.$store.commit('outGroupCell', { order: this.order, $event })
+      $event.stopImmediatePropagation()
     }
   }
 }

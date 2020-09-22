@@ -24,10 +24,12 @@ export default {
   },
   methods: {
     onOver ($event) {
-      // this.delta.isGroup ? this.$store.commit('overGroupCell', { order: this.order, $event }) : this.$store.commit('overMatchCell', { order: this.order, $event })
+      this.delta.isGroup ? this.$store.commit('overGroupCell', { order: this.order, $event }) : this.$store.commit('overMatchCell', { order: this.order, $event })
+      $event.stopImmediatePropagation()
     },
     onOut ($event) {
-      // this.delta.isGroup ? this.$store.commit('outGroupCell', { order: this.order, $event }) : this.$store.commit('outMatchCell', { order: this.order, $event })
+      this.delta.isGroup ? this.$store.commit('outGroupCell', { order: this.order, $event }) : this.$store.commit('outMatchCell', { order: this.order, $event })
+      $event.stopImmediatePropagation()
     }
   }
 }

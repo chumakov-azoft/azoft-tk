@@ -30,7 +30,7 @@ export default {
   data: () => ({
   }),
   computed: {
-    rowWidth: function () { return this.$store.state.settings.groupsRowWidth[this.s][0] },
+    rowWidth: function () { return this.$store.state.settings.groupsRowWidth[this.s][0] || 750 },
     groups () { return this.$store.state.groups }
   },
   methods: {

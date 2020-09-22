@@ -1,5 +1,6 @@
 const CompressionWebpackPlugin = require('compression-webpack-plugin')
 const manifestJSON = require('./public/manifest.json')
+const packageJSON = require('./package.json')
 // плагин для контроля содержания бандлов:
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 let plugins = []
@@ -29,6 +30,7 @@ module.exports = {
   pwa: {
     themeColor: manifestJSON.theme_color,
     name: manifestJSON.short_name,
+    version: packageJSON.version,
     msTileColor: manifestJSON.background_color,
     appleMobileWebAppCapable: 'yes',
     appleMobileWebAppStatusBarStyle: 'black',

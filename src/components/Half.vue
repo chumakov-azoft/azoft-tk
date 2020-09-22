@@ -79,7 +79,7 @@ export default {
   fill: #ffcd99;
 }
 .overHighlight .over .player {
-  fill: #00f9ff;
+  fill: #80ff55;
 }
 .player {
   fill: #ffffff;

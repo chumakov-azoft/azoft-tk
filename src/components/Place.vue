@@ -78,7 +78,7 @@ export default {
   fill: #ffcd99;
 }
 .overHighlight .over .place {
-  fill: #00f9ff;
+  fill: #80ff55;
 }
 .place--shade, .place--plus, .place--minus, .place--name, .place--delta {
   pointer-events: none;

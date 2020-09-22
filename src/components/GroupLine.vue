@@ -1,8 +1,10 @@
 <template>
-  <g :class="placeClass">
+  <g :class="placeClass"
+     @mouseout="$store.commit('outPlayer', {seed, $event})"
+     @mouseover="$store.commit('overPlayer', {seed, $event})">
     <rect class="group-player-shade" :width="backWidth" height="30" v-if="backVisible"></rect>
     <rect v-if="seed >= 0" class="group-player" :width="nameWidth + 70" height="30"></rect>
-    <rect v-if="seed >= 0" class="group-player-end" :x="tableAndNameWidth" :width="Math.max(1, backWidth - tableAndNameWidth)" height="30"></rect>
+    <rect v-if="seed >= 0" class="group-player-end" :x="tableAndNameWidth + 10" :width="Math.max(1, backWidth - tableAndNameWidth - 10)" height="30"></rect>
     <text x="12" y="19" text-anchor="middle" class="group-player-order">{{order[2] + 1}}</text>
     <text v-if="seed >= 0" x="36" y="19" text-anchor="middle" class="group-player-rating">{{rating}}</text>
     <image v-if="seed >= 0 && showLogo" :href="logo" x="57" y="6.5" height="18" width="18"></image>
