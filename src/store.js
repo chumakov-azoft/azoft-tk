@@ -754,6 +754,7 @@ function calcGroupPlaces (state, groups, seeds, scores, places, curves, deltas, 
         current[i].max += (result[0] === 'Tex') ? 0 : 1
         finished++
       } else {
+        current[i].min += 1
         current[i].max += 2
       }
     }
@@ -1363,9 +1364,9 @@ function updateNextStage (state, s, g, i, seed) {
   // }
   // console.log(1111, f0, p, state.seeds[s + 1][0], state.seeds[s + 1][0])
   // console.log('update stage', seed, '->', p, state.players[seed].short)
-  if (p === -1) {
+  if (p === -1 || p === undefined) {
     console.log(state.seeds[s + 1][0], s, g, i - 1)
-    console.log('wrong rule', f0, state.seeds[s + 1][0][f0], state.settings.rule[s][f0])
+    console.log('wrong rule', f0)
     return
   }
   if (p !== seed) {
@@ -1401,6 +1402,7 @@ function updateNextStage (state, s, g, i, seed) {
 }
 
 function updateNextReady (state, s, seed, updateIfSingle = true) {
+  console.log(111)
   if (!state.matches || !state.matches[s + 1] || !state.matches[s + 1][updateIfSingle ? 0 : 1]) {
     return
   }
@@ -1408,7 +1410,7 @@ function updateNextReady (state, s, seed, updateIfSingle = true) {
   const j1 = state.seeds[s + 1][updateIfSingle ? 0 : 1].indexOf(seed)
   let status = state.scores[s + 1][updateIfSingle ? 0 : 1][Math.floor(j1 / 2)][2]
   const match0 = state.matches[s + 1][updateIfSingle ? 0 : 1][Math.floor(j1 / 2)]
-  // console.log('match', match0.status)
+  console.log('match', state.matches[s + 1], status)
   if (j1 % 2) {
     if (status === 'ready2' || status === 'ready') {
     } else if (status === 'ready1') {
@@ -1432,7 +1434,8 @@ function updateNextReady (state, s, seed, updateIfSingle = true) {
   }
   // update json
   if (state.scores[s + 1][updateIfSingle ? 0 : 1][Math.floor(j1 / 2)]) {
-    state.scores[s + 1][updateIfSingle ? 0 : 1][Math.floor(j1 / 2)][2] = status
+    // state.scores[s + 1][updateIfSingle ? 0 : 1][Math.floor(j1 / 2)][2] = status
+    Vue.set(state.scores[s + 1][updateIfSingle ? 0 : 1][Math.floor(j1 / 2)], 2, status)
     // console.log('score', state.scores[s + 1][i0][Math.floor(j0 / 2)])
   }
 }
@@ -1442,6 +1445,9 @@ function updateNextMatches (state, s, i, j, p1, p2) {
   if (i < state.seeds[s].length - 1) {
     let { i0, j0 } = getNextSeed(state, p1, s, i)
     if (p1 !== -1 && j0 !== -1) {
+      if (!state.scores[s][i0][Math.floor(j0 / 2)]) {
+        return
+      }
       let status = state.scores[s][i0][Math.floor(j0 / 2)][2]
       // const match0 = state.matches[s][i0][Math.floor(j0 / 2)]
       if (j0 % 2) {
@@ -1461,13 +1467,13 @@ function updateNextMatches (state, s, i, j, p1, p2) {
           status = 'ready1'
         }
       }
-      if (state.scores[s][i0][Math.floor(j0 / 2)]) {
-        state.scores[s][i0][Math.floor(j0 / 2)][2] = status
-        // console.log(state.scores[s][i0][Math.floor(j0 / 2)])
-      }
+      state.scores[s][i0][Math.floor(j0 / 2)][2] = status
     }
     ({ i0, j0 } = getNextSeed(state, p2, s, i))
     if (p2 !== -1 && j0 !== -1) {
+      if (!state.scores[s][i0][Math.floor(j0 / 2)]) {
+        return
+      }
       let status = state.scores[s][i0][Math.floor(j0 / 2)][2]
       // const match1 = state.matches[s][i0][Math.floor(j0 / 2)]
       if (j0 % 2) {
@@ -1487,9 +1493,7 @@ function updateNextMatches (state, s, i, j, p1, p2) {
           status = 'ready1'
         }
       }
-      if (state.scores[s][i0][Math.floor(j0 / 2)]) {
-        state.scores[s][i0][Math.floor(j0 / 2)][2] = status
-      }
+      state.scores[s][i0][Math.floor(j0 / 2)][2] = status
     }
   }
 }
@@ -1936,6 +1940,9 @@ function getStage1Position (state, s, seed) {
 
 function getNextStagePosition (state, s, g, i) {
   let f0 = 0
+  if (!state.settings.rule) {
+    return
+  }
   const rule = state.settings.rule[0]
   while (f0 < rule.length) {
     if ((rule[f0][0] === g + 1) && (rule[f0][1] === i + 1)) {
