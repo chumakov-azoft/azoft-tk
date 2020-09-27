@@ -31,6 +31,7 @@ export default new Vuex.Store({
       showPlayers: false,
       showPlaces: false,
       showFinalsBegin: false,
+      showNotReadyNames: false,
       nameWidth: 210,
       shortType: '',
       pairWidth: 300,
@@ -156,6 +157,7 @@ export default new Vuex.Store({
           state.settings.showLogo = state.info.showLogo
           state.settings.showPlayers = state.info.showPlayers
           state.settings.showFinalsBegin = state.info.showFinalsBegin
+          state.settings.showNotReadyNames = state.info.showNotReadyNames
           state.settings.showPlaces = state.info.showPlaces
           state.edit.logos = state.info.logos || []
           state.players = values[1].data.players
@@ -1402,7 +1404,6 @@ function updateNextStage (state, s, g, i, seed) {
 }
 
 function updateNextReady (state, s, seed, updateIfSingle = true) {
-  console.log(111)
   if (!state.matches || !state.matches[s + 1] || !state.matches[s + 1][updateIfSingle ? 0 : 1]) {
     return
   }
@@ -1410,7 +1411,7 @@ function updateNextReady (state, s, seed, updateIfSingle = true) {
   const j1 = state.seeds[s + 1][updateIfSingle ? 0 : 1].indexOf(seed)
   let status = state.scores[s + 1][updateIfSingle ? 0 : 1][Math.floor(j1 / 2)][2]
   const match0 = state.matches[s + 1][updateIfSingle ? 0 : 1][Math.floor(j1 / 2)]
-  console.log('match', state.matches[s + 1], status)
+  // console.log('match', state.matches[s + 1], status)
   if (j1 % 2) {
     if (status === 'ready2' || status === 'ready') {
     } else if (status === 'ready1') {
@@ -1593,6 +1594,9 @@ function calcFinPlaces (state, stage) {
     const i = order[1]
     const j = order[2]
     const p = order[3]
+    if (!state.scores[s][i][j]) {
+      continue
+    }
     const status = state.scores[s][i][j][2]
     if (k + 1 > offset) {
       fin++

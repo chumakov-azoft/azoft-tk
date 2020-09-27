@@ -1,6 +1,6 @@
 {
   "name": "azoft-tk",
-  "version": "0.1.40",
+  "version": "0.1.42",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve --port 7001",

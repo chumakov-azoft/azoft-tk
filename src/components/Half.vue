@@ -40,7 +40,8 @@ export default {
   data: () => ({
   }),
   computed: {
-    empty: function () { return this.status === '' },
+    showNotReadyNames: function () { return this.$store.state.settings.showNotReadyNames },
+    empty: function () { return !this.showNotReadyNames && this.status === '' },
     rule: function () { return this.$store.state.settings.rule[0] },
     ruleGroup: function () { return this.rule[this.index][0] },
     rulePlace: function () { return this.rule[this.index][1] },
