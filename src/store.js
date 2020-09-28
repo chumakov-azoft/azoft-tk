@@ -169,6 +169,7 @@ export default new Vuex.Store({
           state.seeds = values[3].data.seeds
           state.scores = values[4].data.scores
           state.medias = values[5].data.medias
+          state.headers = values[5].data.headers
           state.titles = values[5].data.titles
           state.texts = values[5].data.texts
           try {
@@ -671,6 +672,19 @@ function createTournament (state) {
     })
   } else {
     createFinals(state, 0, state.mesh, state.seeds, state.scores)
+  }
+  if (!state.titles) {
+    state.titles = []
+  }
+  for (let header of state.headers) {
+    try {
+      const pos = state.matches[header[1]][header[2]][header[3]].position
+      const stagePos = state.settings.stagesPosition[header[1]]
+      header.splice(1, 3, pos[0] + stagePos[0], pos[1] + stagePos[1] - 5)
+      state.titles.push(header)
+    } catch (error) {
+      console.log('wrong title')
+    }
   }
   // console.log(state.matches)
   // console.log(state.places)
@@ -1587,7 +1601,7 @@ function calcFinPlaces (state, stage) {
   let place = 0
   let fin = 0
   let offset = sizes[fin]
-  console.log(state.settings.fin)
+  // console.log(state.settings.fin)
   for (let k = 0; k < state.settings.fin.length; k++) {
     const order = state.settings.fin[k]
     const s = order[0]

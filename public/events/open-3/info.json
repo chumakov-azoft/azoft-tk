@@ -6,7 +6,7 @@
   "showPlayers": true,
   "showPlaces": false,
   "showFinalsBegin": false,
-  "showNotReadyNames": true,
+  "showNotReadyNames": false,
   "nameWidth": 140,
   "logos": ["images/azoft.svg", "images/ds1.png", "images/itk.png", "images/one.inc.png", "images/rpa.png"],
   "zoom": {
