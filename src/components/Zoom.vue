@@ -9,7 +9,7 @@
     :controlIconsEnabled="false"
     :fit="false"
     :center="false"
-    :minZoom="0.1"
+    :minZoom="0.13"
     :customEventsHandler="options"
   ><svg style="width: 100%; height: 100%;">
       <defs>
