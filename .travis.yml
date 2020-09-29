@@ -1,0 +1,4 @@
+deploy:
+    provider: pages:git
+    deploy_key: azoft-tk
+    local_dir: dist
