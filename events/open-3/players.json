@@ -1,0 +1,127 @@
+{
+
+  "players":[
+    {
+      "name":"Чумаков Денис",
+      "rating":"301",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },
+    {
+      "name":"Смаль Екатерина",
+      "rating":"165",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Экгардт Евгений",
+      "rating":"154",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Касаткин Руслан",
+      "rating":"136",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Киселёв Алексей",
+      "rating":"126",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Суховерхов Дмитрий Викторович",
+      "rating":"120",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Холодков Юрий",
+      "rating":"115",
+      "logo":"images/rpa.png",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Ростовцев Руслан",
+      "rating":"109",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Смелов Семён",
+      "rating":"106",
+      "logo":"/images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Клюкина Анастасия",
+      "rating":"104",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Лихачёв Олег",
+      "rating":"103",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Горносталь Владимир",
+      "rating":"100",
+      "logo":"images/rpa.png",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Овчинников Дмитрий",
+      "rating":"100",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Юрков Артём Игоревич",
+      "rating":"96",
+      "logo":"images/ds1.png",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Меркурьев Захар",
+      "rating":"64",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Юлаев Руслан Робертович",
+      "rating":"60",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Горшков Денис",
+      "rating":"48",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Чаюн Игорь",
+      "rating":"48",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Иванова Ольга",
+      "rating":"30",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Сартин Максим",
+      "rating":"30",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Сорокин Дмитрий",
+      "rating":"30",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Шагдарова Валерия",
+      "rating":"30",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Лянгасов Иван",
+      "rating":"25",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    },{
+      "name":"Терентьева Алёна",
+      "rating":"20",
+      "logo":"images/azoft.svg",
+      "location":"Новосибирская обл., Новосибирск"
+    }
+  ]
+}

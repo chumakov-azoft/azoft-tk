@@ -1,0 +1,160 @@
+{
+  "players": [
+    {
+      "name": "Чумаков Денис Викторович",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "295"
+    },
+    {
+      "name": "Экгардт Евгений",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "152"
+    },
+    {
+      "name": "Анисимов Константин",
+      "logo": "images/itk.png",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "175"
+    },
+    {
+      "name": "Клюкина Анастасия",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "89"
+    },
+    {
+      "name": "Смаль Екатерина",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "118"
+    },
+    {
+      "name": "Касаткин Руслан",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "102"
+    },
+    {
+      "name": "Киселёв Алексей",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "102"
+    },
+    {
+      "name": "Холодков Юрий",
+      "logo": "images/rpa.png",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "100"
+    },
+    {
+      "name": "Горностал Владимир",
+      "logo": "images/rpa.png",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "90"
+    },
+    {
+      "name": "Панкрашев Кирилл",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "48"
+    },
+    {
+      "name": "Лихачёв Олег",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "100"
+    },
+    {
+      "name": "Меркурьев Захар",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "34"
+    },
+    {
+      "name": "Изох Полина",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "63"
+    },
+    {
+      "name": "Юрков Артём Игоревич",
+      "logo": "images/ds1.png",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "112"
+    },
+    {
+      "name": "Ожиганов Иван",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "50"
+    },
+    {
+      "name": "Ростовцев Руслан",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "73"
+    },
+    {
+      "name": "Бычков Никита",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "93"
+    },
+    {
+      "name": "Горшков Денис",
+      "logo": "images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "55"
+    },
+    {
+      "name": "Смелов Семён",
+      "logo": "/images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "60"
+    },
+    {
+      "name": "Суховерхов Дмитрий",
+      "logo": "/images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "50"
+    },
+    {
+      "name":"Ануфриев Андрей Сергеевич",
+      "rating":"40",
+      "logo":"/images/ds1.png",
+      "location":"Новосибирская обл., Новосибирск"
+    },
+    {
+      "name": "Дьякова Зоя",
+      "logo": "/images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "40"
+    },
+    {
+      "name": "Полюхова Юлия",
+      "logo": "/images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "30"
+    },
+    {
+      "name": "Чаюн Игорь",
+      "logo": "/images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "30"
+    },
+    {
+      "name": "Артищева Наталья",
+      "logo": "/images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "30"
+    },
+    {
+      "name": "Смоглюк Андрей",
+      "logo": "/images/azoft.svg",
+      "location": "Новосибирская обл., Новосибирск",
+      "rating": "30"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Azoft Open 3.0",
+  "status": "playing",
+  "stages": [["groups", 6], ["finals", 12]],
+  "showLogo": true,
+  "showPlayers": true,
+  "showPlaces": true,
+  "showFinalsBegin": false,
+  "showNotReadyNames": false,
+  "nameWidth": 140,
+  "logos": ["images/azoft.svg", "images/ds1.png", "images/itk.png", "images/one.inc.png", "images/rpa.png"],
+  "zoom": {
+    "x": 20,
+    "y": 20,
+    "scale": 0.9
+  }
+}
